@@ -38,6 +38,7 @@ services:
     env_file: .env
     environment:
       WAHA_API_BASE_URL: http://waha:3000
+      WACALLS_API_BASE_URL: ${WACALLS_API_BASE_URL:-http://wacalls:8080}
     networks:
       - internal
     healthcheck:
@@ -108,6 +109,26 @@ services:
     networks:
       - internal
 
+  wacalls:
+    image: ${WACALLS_IMAGE:-ghcr.io/jotadev66/wacalls@sha256:9ff52ef9455cf42125a911c38bb8c855f0cc205516cada2054e5c05546909022}
+    pull_policy: ${WACALLS_PULL_POLICY:-missing}
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      WACALLS_ADMIN_USER: ${WACALLS_ADMIN_USER:-admin}
+      WACALLS_ADMIN_PASSWORD: ${WACALLS_ADMIN_PASSWORD:-}
+      WACALLS_API_TOKEN: ${WACALLS_API_TOKEN:-}
+      WACALLS_CORS_ORIGINS: ${WACALLS_CORS_ORIGINS:-}
+      WACALLS_TRUSTED_PROXIES: ${WACALLS_TRUSTED_PROXIES:-}
+      WACALLS_PUBLIC_IP: ${WACALLS_PUBLIC_IP:-}
+      WACALLS_WEBRTC_UDP_PORT: ${WACALLS_WEBRTC_UDP_PORT:-7881}
+    ports:
+      - "${WACALLS_WEBRTC_UDP_PORT:-7881}:${WACALLS_WEBRTC_UDP_PORT:-7881}/udp"
+    volumes:
+      - wacalls-data:/data
+    networks:
+      - internal
+
   caddy:
     profiles: ["caddy-disabled-on-coolify"]
     image: caddy:2-alpine
@@ -115,6 +136,7 @@ services:
 volumes:
   waha-data:
   waha-media:
+  wacalls-data:
 
 networks:
   internal:
