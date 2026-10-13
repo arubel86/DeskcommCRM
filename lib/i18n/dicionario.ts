@@ -6072,6 +6072,12 @@ export const DICIONARIO: Traducoes = {
 
   // ─── Contacts: vocabulário da timeline (lib/leads/activity-vocabulary.ts) ───
   "Entrou pelo WhatsApp": { es: "Entró por WhatsApp" },
+  "Entrou pelo Instagram": { es: "Entró por Instagram" },
+  "primeira mensagem recebida no WhatsApp": { es: "primer mensaje recibido en WhatsApp" },
+  "primeira mensagem recebida no Instagram": { es: "primer mensaje recibido en Instagram" },
+  "cliente conhecido voltou a escrever": { es: "cliente conocido volvió a escribir" },
+  "Novo contato pelo WhatsApp": { es: "Nuevo contacto por WhatsApp" },
+  "Novo contato pelo Instagram": { es: "Nuevo contacto por Instagram" },
   "Mudou de estágio": { es: "Cambió de etapa" },
   "Correção do que o assistente tinha feito": { es: "Corrección de lo que había hecho el asistente" },
   "Anotação": { es: "Anotación" },
