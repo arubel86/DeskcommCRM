@@ -8,6 +8,7 @@ import { zernioAdapter } from "../adapters/zernio";
 import { zernioCredsForAccountId } from "../zernio/credentials";
 import { socialMessageId, SOCIAL_PROVIDER } from "./catalog";
 import { socialRequest } from "./client";
+import { sendInstagramMessage } from "../meta-instagram/outbound";
 import type { ChannelAdapter } from "../types";
 
 export const socialAdapter: ChannelAdapter = {
@@ -106,6 +107,23 @@ export const socialAdapter: ChannelAdapter = {
       throw new Error("Aguarde uma mensagem do cliente para responder nesta rede.");
     if (!["text", "image", "video", "audio"].includes(envelope.kind))
       throw new Error("Este tipo de mensagem ainda não é suportado nesta rede.");
+
+    // Envio direto via Meta Graph API (quando META_INSTAGRAM_PAGE_TOKEN estiver configurado)
+    const directPageToken = process.env.META_INSTAGRAM_PAGE_TOKEN;
+    if (directPageToken) {
+      await envelope.beforeSend?.();
+      const directResult = await sendInstagramMessage({
+        recipientId: envelope.providerConversationId,
+        text: envelope.body,
+        mediaUrl: envelope.media?.url,
+        mediaType: ["image", "audio", "video"].includes(envelope.kind)
+          ? (envelope.kind as "image" | "audio" | "video")
+          : undefined,
+        pageAccessToken: directPageToken,
+      });
+      return { externalId: `instagram:${directResult.messageId}` };
+    }
+
     const creds = await zernioCredsForAccountId(createAdminClient(), {
       organizationId: envelope.organizationId,
       accountId: envelope.sessionRef,
