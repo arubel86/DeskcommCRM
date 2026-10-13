@@ -155,6 +155,11 @@ export async function ingestInstagramMessage(
     conversationId = newConv.id;
   }
 
+  if (!contactId || !conversationId) {
+    logger.error("[meta-instagram] Falha ao resolver contato ou conversa", { contactId, conversationId });
+    return { status: "failed", reason: "falta_contato_ou_conversa" };
+  }
+
   // 3. Inserir a Mensagem (idempotência por external_id)
   const externalId = `instagram:${msg.messageId}`;
   const firstAttachment = msg.attachments[0];
@@ -184,6 +189,10 @@ export async function ingestInstagramMessage(
     }
     logger.error("[meta-instagram] Falha ao inserir mensagem", { error: errInsert });
     return { status: "failed", reason: `mensagem: ${errInsert.message}` };
+  }
+
+  if (!insertedMsg) {
+    return { status: "failed", reason: "mensagem_nao_retornada" };
   }
 
   const messageId = insertedMsg.id;
