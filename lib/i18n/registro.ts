@@ -54,15 +54,6 @@ export interface IdiomaRegistrado {
 
 export const REGISTRO_DE_IDIOMAS = [
   {
-    codigo: "pt-BR",
-    nomeNativo: "Português (BR)",
-    rotuloCurto: "PT",
-    tagBcp47: "pt-BR",
-    subtagsDoNavegador: ["pt"],
-    nivel: "completo",
-    mantenedor: "mantenedores do projeto",
-  },
-  {
     codigo: "es",
     nomeNativo: "Español",
     rotuloCurto: "ES",
@@ -70,6 +61,15 @@ export const REGISTRO_DE_IDIOMAS = [
     // navegador resolve pela região de quem lê.
     tagBcp47: "es",
     subtagsDoNavegador: ["es"],
+    nivel: "completo",
+    mantenedor: "mantenedores do projeto",
+  },
+  {
+    codigo: "pt-BR",
+    nomeNativo: "Português (BR)",
+    rotuloCurto: "PT",
+    tagBcp47: "pt-BR",
+    subtagsDoNavegador: ["pt"],
     nivel: "completo",
     mantenedor: "mantenedores do projeto",
   },
