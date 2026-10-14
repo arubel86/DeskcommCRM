@@ -144,7 +144,7 @@ export async function ingestInstagramMessage(
         last_message_at: nowIso,
         last_inbound_at: nowIso,
         last_message_preview: preview,
-        status: "active",
+        status: "open",
       })
       .select("id")
       .single();
