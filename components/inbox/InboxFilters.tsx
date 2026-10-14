@@ -358,36 +358,36 @@ export function InboxFilters({ value, onChange }: Props) {
       <Tabs
         value={value.channelType ?? "all"}
         onValueChange={(v) => onChange({ ...value, channelType: v as ChannelTypeFilter })}
-        className="px-3"
+        className="px-2"
       >
-        <TabsList className="h-auto w-full justify-between gap-1 overflow-x-auto rounded-none bg-transparent p-0 [scrollbar-width:none]">
+        <TabsList className="h-auto w-full justify-between gap-0.5 rounded-none bg-transparent p-0 [scrollbar-width:none]">
           <TabsTrigger
             value="all"
-            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+            className="-mb-px flex-1 justify-center rounded-none border-b-2 border-transparent px-0.5 pb-2 pt-1 text-[11px] font-medium tracking-tight text-text-muted whitespace-nowrap data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
           >
-            {t("Todos os canais")}
+            {t("Todos")}
           </TabsTrigger>
           <TabsTrigger
             value="whatsapp"
-            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+            className="-mb-px flex-1 justify-center rounded-none border-b-2 border-transparent px-0.5 pb-2 pt-1 text-[11px] font-medium tracking-tight text-text-muted whitespace-nowrap data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
           >
             WhatsApp
           </TabsTrigger>
           <TabsTrigger
             value="instagram"
-            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+            className="-mb-px flex-1 justify-center rounded-none border-b-2 border-transparent px-0.5 pb-2 pt-1 text-[11px] font-medium tracking-tight text-text-muted whitespace-nowrap data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
           >
             Instagram
           </TabsTrigger>
           <TabsTrigger
             value="facebook"
-            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+            className="-mb-px flex-1 justify-center rounded-none border-b-2 border-transparent px-0.5 pb-2 pt-1 text-[11px] font-medium tracking-tight text-text-muted whitespace-nowrap data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
           >
             Facebook
           </TabsTrigger>
           <TabsTrigger
             value="email"
-            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+            className="-mb-px flex-1 justify-center rounded-none border-b-2 border-transparent px-0.5 pb-2 pt-1 text-[11px] font-medium tracking-tight text-text-muted whitespace-nowrap data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
           >
             {t("Correio")}
           </TabsTrigger>
