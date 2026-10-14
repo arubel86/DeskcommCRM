@@ -283,30 +283,8 @@ export function InboxFilters({ value, onChange }: Props) {
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Select
-            value={value.channelType ?? "all"}
-            onValueChange={(v) =>
-              onChange({ ...value, channelType: v as ChannelTypeFilter })
-            }
-          >
-            <SelectTrigger
-              className={cn(
-                "h-8 min-w-0 flex-1 rounded-full border-transparent bg-surface-elevated px-3 text-xs shadow-none transition-colors",
-                value.channelType && value.channelType !== "all" && "border-accent bg-accent-soft text-accent font-medium",
-              )}
-              aria-label={t("Canais")}
-            >
-              <SelectValue placeholder={t("Todos os canais")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("Todos os canais")}</SelectItem>
-              <SelectItem value="whatsapp">WhatsApp</SelectItem>
-              <SelectItem value="instagram">Instagram</SelectItem>
-              <SelectItem value="facebook">Facebook</SelectItem>
-              <SelectItem value="email">{t("Correio")}</SelectItem>
-            </SelectContent>
-          </Select>
+        {(showChannelSwitch || mostrarSeletorDeTag) && (
+          <div className="flex gap-2">
             {showChannelSwitch && (
               <Select
                 value={value.channel_session_id ?? "all"}
@@ -349,11 +327,6 @@ export function InboxFilters({ value, onChange }: Props) {
                   )}
                   aria-label={t("Filtrar por tag")}
                 >
-                  {/* O gatilho mostra o CHIP da etiqueta filtrada, e não o texto
-                      cru: é a mesma cor que a lista mostra ao lado, e é o que
-                      faz o filtro ativo se reconhecer de relance — mesma razão
-                      do `border-accent` acima. Sem filtro, o texto continua
-                      sendo o de sempre (`Todas as tags`). */}
                   <SelectValue placeholder={t("Todas as tags")}>
                     {value.tag ? (
                       <ChipDeEtiqueta tag={value.tag} className="h-5 px-1.5 text-[11px]" />
@@ -364,18 +337,11 @@ export function InboxFilters({ value, onChange }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("Todas as tags")}</SelectItem>
-                  {/* A órfã entra na lista: sem ela o Select mostraria o
-                      placeholder no lugar do valor JÁ selecionado, e o operador
-                      veria "Todas as tags" com um filtro ativo. */}
                   {[
                     ...vocabularioDoSeletor,
                     ...(tagForaDoVocabulario && value.tag ? [value.tag] : []),
                   ].map((tag) => (
                     <SelectItem key={tag} value={tag}>
-                      {/* Ponto, não chip: a opção é uma linha de 280 px que já
-                          divide espaço com o filtro de número. O nome continua
-                          sendo o que se lê; a cor só acelera o reconhecimento
-                          de quem já conhece o vocabulário da operação. */}
                       <span className="inline-flex items-center gap-2">
                         <PontoDaEtiqueta tag={tag} />
                         {tag}
@@ -386,32 +352,45 @@ export function InboxFilters({ value, onChange }: Props) {
               </Select>
             )}
           </div>
+        )}
       </div>
 
-      {/* Faixa sublinhada, não caixa cinza: cinco abas num grid de 280px
-          espremiam "Fechadas" contra "Automático" até os rótulos se tocarem. */}
       <Tabs
-        value={value.tab}
-        onValueChange={(v) => onChange({ ...value, tab: v as InboxTab })}
+        value={value.channelType ?? "all"}
+        onValueChange={(v) => onChange({ ...value, channelType: v as ChannelTypeFilter })}
         className="px-3"
       >
-        <TabsList className="h-auto w-full justify-between gap-2 rounded-none bg-transparent p-0 [scrollbar-width:none]">
-          {tabs.map((tab) => {
-            const meta = INBOX_TABS.find((t) => t.value === tab)!;
-            const count = countFor[tab];
-            return (
-              <TabsTrigger
-                key={tab}
-                value={tab}
-                className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-0 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
-              >
-                {t(meta.label)}
-                {typeof count === "number" && count > 0 && (
-                  <span className="text-[11px] tabular-nums text-text-subtle">{count}</span>
-                )}
-              </TabsTrigger>
-            );
-          })}
+        <TabsList className="h-auto w-full justify-between gap-1 overflow-x-auto rounded-none bg-transparent p-0 [scrollbar-width:none]">
+          <TabsTrigger
+            value="all"
+            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+          >
+            {t("Todos os canais")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="whatsapp"
+            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+          >
+            WhatsApp
+          </TabsTrigger>
+          <TabsTrigger
+            value="instagram"
+            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+          >
+            Instagram
+          </TabsTrigger>
+          <TabsTrigger
+            value="facebook"
+            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+          >
+            Facebook
+          </TabsTrigger>
+          <TabsTrigger
+            value="email"
+            className="-mb-px shrink-0 gap-1 rounded-none border-b-2 border-transparent px-1 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+          >
+            {t("Correio")}
+          </TabsTrigger>
         </TabsList>
       </Tabs>
     </div>
