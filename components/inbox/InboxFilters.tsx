@@ -51,11 +51,14 @@ export function visibleInboxTabs(role: Role, mode: VisibilityMode | undefined): 
   return INBOX_TABS.filter((t) => !(t.value === "all" && hideAll)).map((t) => t.value);
 }
 
+export type ChannelTypeFilter = "all" | "whatsapp" | "instagram" | "facebook" | "email";
+
 export interface InboxFiltersValue {
   tab: InboxTab;
   search: string;
   onlyUnread: boolean;
   channel_session_id?: string;
+  channelType?: ChannelTypeFilter;
   tag?: string;
 }
 
@@ -280,8 +283,40 @@ export function InboxFilters({ value, onChange }: Props) {
           </button>
         </div>
 
-        {(showChannelSwitch || mostrarSeletorDeTag) && (
-          <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Select
+            value={value.channelType ?? "all"}
+            onValueChange={(v) =>
+              onChange({ ...value, channelType: v as ChannelTypeFilter })
+            }
+          >
+            <SelectTrigger
+              className={cn(
+                "h-8 min-w-0 flex-1 rounded-full border-transparent bg-surface-elevated px-3 text-xs shadow-none transition-colors",
+                value.channelType && value.channelType !== "all" && "border-accent bg-accent-soft text-accent font-medium",
+              )}
+              aria-label={t("Canais")}
+            >
+              <SelectValue placeholder={t("Canais")}>
+                {value.channelType === "whatsapp"
+                  ? "WhatsApp"
+                  : value.channelType === "instagram"
+                  ? "Instagram"
+                  : value.channelType === "facebook"
+                  ? "Facebook"
+                  : value.channelType === "email"
+                  ? t("Correio")
+                  : t("Canais")}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("Todos os canais")}</SelectItem>
+              <SelectItem value="whatsapp">WhatsApp</SelectItem>
+              <SelectItem value="instagram">Instagram</SelectItem>
+              <SelectItem value="facebook">Facebook</SelectItem>
+              <SelectItem value="email">{t("Correio")}</SelectItem>
+            </SelectContent>
+          </Select>
             {showChannelSwitch && (
               <Select
                 value={value.channel_session_id ?? "all"}
@@ -361,7 +396,6 @@ export function InboxFilters({ value, onChange }: Props) {
               </Select>
             )}
           </div>
-        )}
       </div>
 
       {/* Faixa sublinhada, não caixa cinza: cinco abas num grid de 280px

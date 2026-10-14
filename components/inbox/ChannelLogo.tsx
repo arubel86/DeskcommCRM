@@ -1,6 +1,6 @@
 "use client";
 
-import { ChatCircle, InstagramLogo, MessengerLogo, WhatsappLogo } from "@/lib/ui/icons";
+import { ChatCircle, InstagramLogo, MessengerLogo, WhatsappLogo, EnvelopeSimple } from "@/lib/ui/icons";
 import { channelBrand } from "@/lib/channels/presentation";
 import { useT } from "@/hooks/i18n/useT";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ const brands = {
   whatsapp: { Icon: WhatsappLogo, label: "WhatsApp", color: "text-[#128c4a] dark:text-[#25d366]" },
   instagram: { Icon: InstagramLogo, label: "Instagram", color: "text-[#c13584] dark:text-[#f472b6]" },
   messenger: { Icon: MessengerLogo, label: "Messenger", color: "text-[#0866ff] dark:text-[#60a5fa]" },
+  email: { Icon: EnvelopeSimple, label: "Email", color: "text-[#ea4335] dark:text-[#f87171]" },
   unknown: { Icon: ChatCircle, label: "Canal", color: "text-muted-foreground" },
 };
 

@@ -9,6 +9,8 @@ import { useChannelSessions } from "@/hooks/channels/useChannelSessions";
 
 import { useAutomaticoAtivo } from "@/hooks/ai/useAutomaticoAtivo";
 
+import { channelBrand } from "@/lib/channels/presentation";
+import type { ChannelTypeFilter } from "./InboxFilters";
 import { ConversationListItem } from "./ConversationListItem";
 import { EmptyInbox } from "@/components/empty";
 import { EmptyPorFiltro } from "./EmptyPorFiltro";
@@ -27,6 +29,7 @@ interface Props {
   /** Query já montada no pai — evita duplicar subscription Realtime + refetch. */
   listQuery: UseInfiniteQueryResult<InfiniteData<ListResponse>, Error>;
   filters: ConversationsFilters;
+  channelTypeFilter?: ChannelTypeFilter;
   selectedId: string | null;
   onSelect: (id: string) => void;
   /** Desliga os filtros auxiliares. Sem ele, o vazio por filtro nao oferece o botao. */
@@ -38,6 +41,7 @@ interface Props {
 export function ConversationList({
   listQuery: q,
   filters,
+  channelTypeFilter,
   selectedId,
   onSelect,
   onVisibleChange,
@@ -63,13 +67,37 @@ export function ConversationList({
   // com o cabeçalho, que faz a mesma pergunta).
   const automaticoDaOrg = useAutomaticoAtivo();
 
-  // Sem filtro de cliente: TODO filtro é parâmetro do schema e roda no banco.
-  // `clientFilter` era o mecanismo que permitia um filtro existir fora do contrato
-  // — e foi por ele que "Não lidos" virou ilha, fora da cerca que vigia os demais.
-  const items = useMemo(
+  const rawItems = useMemo(
     () => (q.data?.pages.flatMap((p) => p.data) ?? []) as ConversationWithContact[],
     [q.data],
   );
+
+  const items = useMemo(() => {
+    if (!channelTypeFilter || channelTypeFilter === "all") {
+      return rawItems;
+    }
+    return rawItems.filter((conv) => {
+      const convChannel = conv.channel?.toLowerCase();
+      const brand = channelBrand(conv.channel_sessions);
+      if (channelTypeFilter === "whatsapp") {
+        return convChannel === "whatsapp" || brand === "whatsapp";
+      }
+      if (channelTypeFilter === "instagram") {
+        return convChannel === "instagram" || brand === "instagram";
+      }
+      if (channelTypeFilter === "facebook") {
+        return (
+          convChannel === "facebook" ||
+          convChannel === "messenger" ||
+          brand === "messenger"
+        );
+      }
+      if (channelTypeFilter === "email") {
+        return convChannel === "email" || brand === "email";
+      }
+      return true;
+    });
+  }, [rawItems, channelTypeFilter]);
 
   // Notify parent of currently-visible IDs (for j/k nav). Must use effect
   // (not render-time call) — invoking onVisibleChange during render triggers
@@ -142,7 +170,13 @@ export function ConversationList({
   // Vazio por AUSENCIA: a caixa esta mesmo vazia, e o texto pode prometer que
   // mensagens vao aparecer. Este e o unico caso que ainda sai por `return`
   // precoce, porque aqui nao ha pagina seguinte a alcancar.
-  const filtrosAtivos = filtrosAuxiliaresAtivos(filters);
+  const filtrosAtivos = useMemo(() => {
+    const list = filtrosAuxiliaresAtivos(filters);
+    if (channelTypeFilter && channelTypeFilter !== "all") {
+      list.push("Canal");
+    }
+    return list;
+  }, [filters, channelTypeFilter]);
   if (items.length === 0 && filtrosAtivos.length === 0) {
     return (
       <div className="flex h-full items-center justify-center p-6">

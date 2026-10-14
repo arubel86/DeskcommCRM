@@ -139,6 +139,7 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
   const [aux, setAux] = useState<Omit<InboxFiltersValue, "tab">>({
     search: "",
     onlyUnread: false,
+    channelType: "all",
   });
   const filterValue: InboxFiltersValue = { tab, ...aux };
   const setFilterValue = useCallback(
@@ -157,7 +158,7 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
   // Desliga só os AUXILIARES e mantém a aba: a aba é onde a pessoa está, e
   // limpá-la junto a tiraria do lugar sem ela ter pedido.
   const limparFiltrosAuxiliares = useCallback(() => {
-    setFilterValue({ tab, search: "", onlyUnread: false });
+    setFilterValue({ tab, search: "", onlyUnread: false, channelType: "all" });
   }, [tab, setFilterValue]);
 
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
@@ -425,6 +426,7 @@ export function InboxLayout({ initialSelectedId = null }: InboxLayoutProps = {})
           <ConversationList
             listQuery={listQ}
             filters={filters}
+            channelTypeFilter={filterValue.channelType}
             selectedId={selectedId}
             onSelect={handleSelect}
             onVisibleChange={handleVisibleChange}

@@ -8,6 +8,14 @@ export function channelBrand(
     case "zernio":
     case "wacalls":
       return "whatsapp";
+    case "meta_instagram":
+      return "instagram";
+    case "meta_facebook":
+      return "messenger";
+    case "email":
+    case "zoho":
+    case "smtp":
+      return "email";
     case "zernio_social":
       if (session.social_platform === "instagram") return "instagram";
       if (session.social_platform === "facebook") return "messenger";
