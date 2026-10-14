@@ -19,6 +19,7 @@ export function SegmentError({ error, reset, segment }: SegmentErrorProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    console.error("[SegmentError caught]:", error);
     const id = Sentry.captureException(error, {
       tags: segment ? { segment } : undefined,
     });
@@ -46,6 +47,21 @@ export function SegmentError({ error, reset, segment }: SegmentErrorProps) {
         <div className="mt-4 break-all rounded-md bg-muted px-3 py-2 font-mono text-xs">
           ID: {displayId}
         </div>
+        {error && (
+          <details className="mt-4 text-left">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:underline">
+              {t("Ver detalhes técnicos")}
+            </summary>
+            <div className="mt-2 rounded bg-muted/60 p-2 font-mono text-[11px] text-destructive overflow-auto max-h-40">
+              <p className="font-semibold">{error.name}: {error.message}</p>
+              {error.stack && (
+                <pre className="mt-1 text-[10px] text-muted-foreground whitespace-pre-wrap">
+                  {error.stack}
+                </pre>
+              )}
+            </div>
+          </details>
+        )}
         <div className="mt-4 flex justify-center gap-2">
           <Button type="button" variant="outline" onClick={copyId}>
             {copied ? t("Copiado!") : t("Copiar ID")}

@@ -100,6 +100,14 @@ export function ConversationList({
     });
   }, [rawItems, channelTypeFilter]);
 
+  const filtrosAtivos = useMemo(() => {
+    const list = filtrosAuxiliaresAtivos(filters);
+    if (channelTypeFilter && channelTypeFilter !== "all") {
+      list.push("Canal");
+    }
+    return list;
+  }, [filters, channelTypeFilter]);
+
   // Notify parent of currently-visible IDs (for j/k nav). Must use effect
   // (not render-time call) — invoking onVisibleChange during render triggers
   // setState in InboxLayout from inside ConversationList's render phase,
@@ -168,16 +176,6 @@ export function ConversationList({
     );
   }
 
-  // Vazio por AUSENCIA: a caixa esta mesmo vazia, e o texto pode prometer que
-  // mensagens vao aparecer. Este e o unico caso que ainda sai por `return`
-  // precoce, porque aqui nao ha pagina seguinte a alcancar.
-  const filtrosAtivos = useMemo(() => {
-    const list = filtrosAuxiliaresAtivos(filters);
-    if (channelTypeFilter && channelTypeFilter !== "all") {
-      list.push("Canal");
-    }
-    return list;
-  }, [filters, channelTypeFilter]);
   if (items.length === 0 && filtrosAtivos.length === 0) {
     return (
       <div className="flex h-full items-center justify-center p-6">
