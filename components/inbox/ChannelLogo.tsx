@@ -20,7 +20,9 @@ export function ChannelLogo({ channel, size = 18, className }: {
   className?: string;
 }) {
   const t = useT();
-  const { Icon, label, color } = brands[channelBrand(channel)];
+  const brandKey = channelBrand(channel);
+  const brand = (brandKey in brands ? brands[brandKey as keyof typeof brands] : undefined) ?? brands.unknown;
+  const { Icon, label, color } = brand;
   const name = label === "Canal" ? t("Canal") : label;
   return <span role="img" aria-label={name} title={name} className={cn("inline-flex shrink-0 items-center justify-center", color, className)}>
     <Icon size={size} weight="fill" aria-hidden />

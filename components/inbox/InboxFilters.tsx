@@ -297,17 +297,7 @@ export function InboxFilters({ value, onChange }: Props) {
               )}
               aria-label={t("Canais")}
             >
-              <SelectValue placeholder={t("Canais")}>
-                {value.channelType === "whatsapp"
-                  ? "WhatsApp"
-                  : value.channelType === "instagram"
-                  ? "Instagram"
-                  : value.channelType === "facebook"
-                  ? "Facebook"
-                  : value.channelType === "email"
-                  ? t("Correio")
-                  : t("Canais")}
-              </SelectValue>
+              <SelectValue placeholder={t("Todos os canais")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("Todos os canais")}</SelectItem>

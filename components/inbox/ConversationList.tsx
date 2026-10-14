@@ -77,6 +77,7 @@ export function ConversationList({
       return rawItems;
     }
     return rawItems.filter((conv) => {
+      if (!conv) return false;
       const convChannel = conv.channel?.toLowerCase();
       const brand = channelBrand(conv.channel_sessions);
       if (channelTypeFilter === "whatsapp") {
