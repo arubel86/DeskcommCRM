@@ -138,6 +138,7 @@ export async function ingestInstagramMessage(
       .insert({
         organization_id: organizationId,
         contact_id: contactId,
+        channel_session_id: sessionId,
         channel: "instagram",
         provider_conversation_id: msg.senderId,
         last_message_at: nowIso,
