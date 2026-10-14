@@ -97,7 +97,7 @@ export async function ingestInstagramMessage(
       .insert({
         organization_id: organizationId,
         social_identity: socialIdentity,
-        full_name: `Instagram (${msg.senderId})`,
+        name: `Instagram (${msg.senderId})`,
       })
       .select("id")
       .single();
@@ -173,9 +173,9 @@ export async function ingestInstagramMessage(
       channel_session_id: sessionId,
       external_id: externalId,
       direction: "inbound",
-      kind: "message",
+      type: firstAttachment ? "image" : "text",
       status: "delivered",
-      content: msg.text ?? "",
+      body: msg.text ?? "",
       media_url: firstAttachment?.url ?? null,
       sent_at: nowIso,
     })
