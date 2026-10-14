@@ -865,7 +865,6 @@ export const DICIONARIO: Traducoes = {
   "Buscar mensagens…": { es: "Buscar mensajes…" },
   "Todos os números": { es: "Todos los números" },
   "Todos os canais": { es: "Todos los canales" },
-  Canais: { es: "Canales" },
   Correio: { es: "Correo" },
   "Todas as tags": { es: "Todas las etiquetas" },
   "Apenas não lidos": { es: "Solo no leídos" },
