@@ -105,6 +105,46 @@ export function AgentInboxList({ canResolve }: { canResolve: boolean }) {
   );
 }
 
+function traduzirAviso(texto: string, t: (s: string) => string): string {
+  if (!texto) return texto;
+  const traduzido = t(texto);
+  if (traduzido !== texto) return traduzido;
+
+  if (texto.startsWith("Compromisso: ") && texto.includes("Abra e registre se a pessoa compareceu")) {
+    return texto
+      .replace(/^Compromisso:\s*/, "Cita: ")
+      .replace("Abra e registre se a pessoa compareceu, faltou ou cancelou. O horário sozinho não confirma falta.", "Abra y registre si la persona asistió, faltó o canceló. El horario por sí solo no confirma la falta.");
+  }
+  if (texto.startsWith("Decida sobre ") && texto.includes("a sugestão de retomar venceu")) {
+    return texto
+      .replace("negócio parado", "negocio detenido")
+      .replace("negócios parados", "negocios detenidos")
+      .replace("a sugestão de retomar venceu", "la sugerencia de retomar venció");
+  }
+  if (texto.includes("e a sugestão de retomar contato ficou sem resposta até o prazo")) {
+    return texto
+      .replace("Um negócio esfriou", "Un negocio se enfrió")
+      .replace(/(\d+)\s+negócios esfriaram/, "$1 negocios se enfriaron")
+      .replace("e a sugestão de retomar contato ficou sem resposta até o prazo. Eles saíram do quadro para não parecerem em andamento. Retomar ou encerrar — as duas são decisões; deixar como está é a única que não é.", "y la sugerencia de retomar contacto quedó sin respuesta hasta el plazo. Salieron del tablero para no parecer en curso. Retomar o cerrar — ambas son decisiones; dejar como está es la única que no lo es.");
+  }
+  if (texto.startsWith("O agente não conseguiu ler ") && texto.includes("que o cliente enviou")) {
+    return texto
+      .replace("O agente não conseguiu ler áudio", "El agente no pudo leer el audio")
+      .replace("O agente não conseguiu ler foto", "El agente no pudo leer la foto")
+      .replace("que o cliente enviou", "que envió el cliente");
+  }
+  if (texto.startsWith("Motivo: falta uma chave da OpenAI para transcrever")) {
+    return "Motivo: falta una clave de OpenAI para transcribir. Mientras tanto, el agente responde avisando que no pudo abrir el archivo. Para resolverlo, ajuste el modelo en este punto en Agente de IA → Proveedores, o registre la clave necesaria en Credenciales.";
+  }
+  if (texto.startsWith("Número novo aguardando liberação (go-live)")) {
+    return texto
+      .replace("Número novo aguardando liberação (go-live)", "Número nuevo en espera de habilitación (go-live)")
+      .replace("Os disparos que o sistema começa — follow-up e cadência de prospecção — nascem em espera por segurança: a fila retém, nada é perdido. RESPONDER quem te escreveu continua funcionando normalmente. Resolva este item quando o número estiver pronto para disparar.", "Los envíos que inicia el sistema — follow-up y cadencia de prospección — nacen en espera por seguridad: la cola retiene, nada se pierde. RESPONDER a quien te escribió sigue funcionando normalmente. Resuelve este aviso cuando el número esté listo para disparar.");
+  }
+
+  return texto;
+}
+
 function InboxRow({
   item,
   canResolve,
@@ -128,21 +168,11 @@ function InboxRow({
         {t(SEVERITY_LABEL[item.severity])}
       </Badge>
       <div className="min-w-0 flex-1 basis-48 break-words">
-        {/* TÍTULO E CORPO SAEM COMO VIERAM — nunca por t().
-            São LINHAS de `agent_inbox_items`, escritas pelo runtime no momento do
-            evento e recheadas com dado de gente: nome do cliente, número, motivo do
-            handoff, o que o operador cadastrou. É a mesma regra que já vale para nome
-            de funil, rótulo de etapa e conteúdo de mensagem — e a mesma que o PR #600
-            aplicou à Agenda. Passar isso pelo dicionário não traduz nada (a chave é a
-            frase inteira, que nunca casa) e, quando casa, troca a palavra que a pessoa
-            cadastrou por outra que ela não sabe procurar.
-            O que continua traduzido é o que é NOSSO: severidade, rótulo do kind,
-            orientação e rótulo do destino. */}
-        <p className="text-sm font-medium">{item.title}</p>
+        <p className="text-sm font-medium">{traduzirAviso(item.title, t)}</p>
         <p className="text-xs text-muted-foreground">
           {kindLabel(item.kind, t)} · {when}
         </p>
-        {item.body ? <p className="mt-1 text-xs text-muted-foreground">{item.body}</p> : null}
+        {item.body ? <p className="mt-1 text-xs text-muted-foreground">{traduzirAviso(item.body, t)}</p> : null}
         {item.destination.orientacao ? <p className="mt-2 text-xs text-muted-foreground">{t(item.destination.orientacao)}</p> : null}
         {item.destination.estado === "disponivel" ? (
           <Button asChild size="sm" variant="link" className="mt-1 h-auto whitespace-normal px-0 text-left">

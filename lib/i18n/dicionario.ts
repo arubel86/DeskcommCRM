@@ -8057,6 +8057,90 @@ export const DICIONARIO: Traducoes = {
   "Ver o que ele aprendeu": { es: "Ver lo que aprendió" },
   "O que o agente sabe": { es: "Lo que el agente sabe" },
   "Não publicado": { es: "No publicado" },
+  "Um atendimento espera decisão da equipe": {
+    es: "Una atención espera decisión del equipo",
+  },
+  "Confirme a presença no compromisso": {
+    es: "Confirme la asistencia a la cita",
+  },
+  "Presença sem confirmação há mais tempo": {
+    es: "Asistencia sin confirmación desde hace tiempo",
+  },
+  "A recuperação precisa de uma decisão da equipe": {
+    es: "La recuperación necesita una decisión del equipo",
+  },
+  "Conversa aguardando responsável": {
+    es: "Conversación esperando responsable",
+  },
+  "Número novo aguardando liberação (go-live)": {
+    es: "Número nuevo en espera de habilitación (go-live)",
+  },
+  "O agente não conseguiu ler áudio que o cliente enviou": {
+    es: "El agente no pudo leer el audio que envió el cliente",
+  },
+  "O agente não conseguiu ler foto que o cliente enviou": {
+    es: "El agente no pudo leer la foto que envió el cliente",
+  },
+  "Decida sobre 1 negócio parado — a sugestão de retomar venceu": {
+    es: "Decida sobre 1 negocio detenido — la sugerencia de retomar venció",
+  },
+  "A recuperação não foi iniciada": {
+    es: "La recuperación no fue iniciada",
+  },
+  "O acompanhamento não conseguiu enviar a mensagem": {
+    es: "El seguimiento no pudo enviar el mensaje",
+  },
+  "Uma conversa aguarda um responsável": {
+    es: "Una conversación espera un responsable",
+  },
+  "Em risco": { es: "En riesgo" },
+  "Em voo": { es: "En curso" },
+  "Crítico": { es: "Crítico" },
+  "Assumir": { es: "Asumir" },
+  "vazio": { es: "vacío" },
+  "em": { es: "en" },
+  "de": { es: "de" },
+  "e": { es: "y" },
+  "por": { es: "por" },
+  "hoje": { es: "hoy" },
+  "dia": { es: "día" },
+  "dias": { es: "días" },
+  "horas": { es: "horas" },
+  "ativa": { es: "activa" },
+  "ativo": { es: "activo" },
+  "inativo": { es: "inactivo" },
+  "cadastrada": { es: "registrada" },
+  "caracteres": { es: "caracteres" },
+  "caso": { es: "caso" },
+  "conversas": { es: "conversaciones" },
+  "código": { es: "código" },
+  "desligada": { es: "desactivada" },
+  "disponível": { es: "disponible" },
+  "erro": { es: "error" },
+  "escolha": { es: "elección" },
+  "esperar": { es: "esperar" },
+  "falhas": { es: "fallos" },
+  "falhou": { es: "falló" },
+  "fixo": { es: "fijo" },
+  "inválida": { es: "inválida" },
+  "mensagens": { es: "mensajes" },
+  "negócio": { es: "negocio" },
+  "negócios": { es: "negocios" },
+  "nenhuma": { es: "ninguna" },
+  "parcial": { es: "parcial" },
+  "passo": { es: "paso" },
+  "pendente": { es: "pendiente" },
+  "ponto": { es: "punto" },
+  "pontos": { es: "puntos" },
+  "produção": { es: "producción" },
+  "proposta": { es: "propuesta" },
+  "tentativa": { es: "intento" },
+  "teste": { es: "prueba" },
+  "usos": { es: "usos" },
+  "vaga": { es: "vacante" },
+  "vagas": { es: "vacantes" },
+  "volta": { es: "regreso" },
+  "últimos": { es: "últimos" },
   "Conexão do WhatsApp caiu — precisa escanear o QR de novo": {
     es: "Se cayó la conexión de WhatsApp — hay que escanear el QR de nuevo",
   },
@@ -8115,6 +8199,15 @@ export const DICIONARIO: Traducoes = {
   "Aviso do assistente": { es: "Aviso del asistente" },
   // `informativo` e `crítico` saem iguais nos dois idiomas — sem linha, por isso.
   "atenção": { es: "atención" },
+  "Um negócio esfriou e a sugestão de retomar contato ficou sem resposta até o prazo. Eles saíram do quadro para não parecerem em andamento. Retomar ou encerrar — as duas são decisões; deixar como está é a única que não é.": {
+    es: "Un negocio se enfrió y la sugerencia de retomar contacto quedó sin respuesta hasta el plazo. Salieron del tablero para no parecer en curso. Retomar o cerrar — ambas son decisiones; dejar como está es la única que no lo es.",
+  },
+  "Motivo: falta uma chave da OpenAI para transcrever. Enquanto isso, o agente responde avisando que não conseguiu abrir o arquivo. Para resolver, ajuste o modelo desse ponto em Agente de IA → Provedores, ou cadastre a chave necessária em Credenciais.": {
+    es: "Motivo: falta una clave de OpenAI para transcribir. Mientras tanto, el agente responde avisando que no pudo abrir el archivo. Para resolverlo, ajuste el modelo en este punto en Agente de IA → Proveedores, o registre la clave necesaria en Credenciales.",
+  },
+  "Número novo aguardando liberação (go-live). Os disparos que o sistema começa — follow-up e cadência de prospecção — nascem em espera por segurança: a fila retém, nada é perdido. RESPONDER quem te escreveu continua funcionando normalmente. Resolva este item quando o número estiver pronto para disparar.": {
+    es: "Número nuevo en espera de habilitación (go-live). Los envíos que inicia el sistema — follow-up y cadencia de prospección — nacen en espera por seguridad: la cola retiene, nada se pierde. RESPONDER a quien te escribió sigue funcionando normalmente. Resuelve este aviso cuando el número esté listo para disparar.",
+  },
   // ─── lib/ai/agent-inbox-copy.ts (copyDaPromessaSemDono) ───
   "O assistente prometeu algo ao cliente e ninguém ficou responsável": {
     es: "El asistente prometió algo al cliente y nadie se hizo responsable",

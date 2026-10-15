@@ -20269,8 +20269,8 @@ begin
   expired:=a.ends_at+make_interval(mins=>public.fn_agenda_minutes(a.settings,'unknown_protection_minutes',1440))<=p_now;
   insert into public.agent_inbox_items(organization_id,kind,severity,title,body,ref_kind,ref_id,appointment_revision)
    values(a.organization_id,'appointment_outcome_required',case when expired then 'critical' else 'warn' end,
-    case when expired then 'Presença sem confirmação há mais tempo' else 'Confirme a presença no compromisso' end,
-    'Compromisso: '||a.title||'. Abra e registre se a pessoa compareceu, faltou ou cancelou. O horário sozinho não confirma falta.',
+    case when expired then 'Asistencia sin confirmación desde hace tiempo' else 'Confirme la asistencia a la cita' end,
+    'Cita: '||a.title||'. Abra y registre si la persona asistió, faltó o canceló. El horario por sí solo no confirma la falta.',
     'appointment',a.id,a.revision)
    on conflict(organization_id,ref_id,appointment_revision,kind) where ref_kind='appointment' and appointment_revision is not null
    do update set status='open',resolved_at=null,severity=excluded.severity,title=excluded.title;
@@ -22967,8 +22967,8 @@ begin
   expired:=a.ends_at+make_interval(mins=>public.fn_agenda_minutes(a.settings,'unknown_protection_minutes',1440))<=p_now;
   insert into public.agent_inbox_items(organization_id,kind,severity,title,body,ref_kind,ref_id,appointment_revision)
    values(a.organization_id,'appointment_outcome_required',case when expired then 'critical' else 'warn' end,
-    case when expired then 'Presença sem confirmação há mais tempo' else 'Confirme a presença no compromisso' end,
-    'Compromisso: '||a.title||'. Abra e registre se a pessoa compareceu, faltou ou cancelou. O horário sozinho não confirma falta.',
+    case when expired then 'Asistencia sin confirmación desde hace tiempo' else 'Confirme la asistencia a la cita' end,
+    'Cita: '||a.title||'. Abra y registre si la persona asistió, faltó o canceló. El horario por sí solo no confirma la falta.',
     'appointment',a.id,a.revision)
    on conflict(organization_id,ref_id,appointment_revision,kind) where ref_kind='appointment' and appointment_revision is not null
    do update set status='open',resolved_at=null,severity=excluded.severity,title=excluded.title;
