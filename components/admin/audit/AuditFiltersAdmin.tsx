@@ -211,7 +211,7 @@ export function AuditFiltersAdmin({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <MultiSelectPopover
-        label="Tenants"
+        label={t("Tenants")}
         options={tenantOptions}
         selected={selectedTenants}
         onToggle={toggleTenant}

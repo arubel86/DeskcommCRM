@@ -723,7 +723,7 @@ export function CRMSidePanel({ conversation }: Props) {
                   {/* O invariante 4 na frase, não só na cor: quem enxerga mal
                       cor precisa ler a mesma informação. */}
                   <div className={cn("mt-0.5", semPasso ? "font-medium" : "text-muted-foreground")}>
-                    {d.proximo_passo ?? t("Sem próximo passo definido")}
+                    {d.proximo_passo ? t(d.proximo_passo) : t("Sem próximo passo definido")}
                   </div>
                   {/* A SAÍDA. Sem ela esta seção só denunciava: o atendente via o
                       vazamento e tinha de sair da tela para resolver — peça que
