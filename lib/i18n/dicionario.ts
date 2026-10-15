@@ -43,7 +43,6 @@ export const DICIONARIO: Traducoes = {
   "Sin datos de enriquecimento para este contato.": { es: "Sin datos adicionales para este contacto." },
   "Responder à nova mensagem do cliente": { es: "Responder al nuevo mensaje del cliente" },
   "Responder al nuevo mensaje del cliente": { es: "Responder al nuevo mensaje del cliente" },
-  Você: { es: "Tú" },
   "Alertas WAHA": { es: "Alertas de WhatsApp" },
   "Alertas de WhatsApp": { es: "Alertas de WhatsApp" },
   "Sessão WAHA com suspeita de banimento": { es: "Sesión de WhatsApp con sospecha de bloqueo" },
