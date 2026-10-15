@@ -53,7 +53,7 @@ export const sourceSerif = Source_Serif_4({
 
 export const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "600"],
   display: "swap",
   variable: "--font-plex-sans",
 });
