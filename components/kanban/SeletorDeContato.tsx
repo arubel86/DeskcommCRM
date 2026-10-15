@@ -90,12 +90,12 @@ export function SeletorDeContato({ escolhido, onEscolher }: Props) {
         onChange={(e) => setTermo(e.target.value)}
       />
       {achados.length > 0 && (
-        <ul className="max-h-48 divide-y overflow-y-auto rounded-md border">
+        <ul className="max-h-40 divide-y overflow-y-auto rounded-md border bg-card/50">
           {achados.map((c) => (
             <li key={c.id}>
               <button
                 type="button"
-                className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-muted"
+                className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-muted/80 transition-colors"
                 onClick={() => escolher(c)}
               >
                 <span className="text-sm">{rotuloDoContato(c, t)}</span>

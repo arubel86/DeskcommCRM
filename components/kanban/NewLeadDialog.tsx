@@ -179,101 +179,103 @@ export function NewLeadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className="max-h-[90vh] flex flex-col p-0 gap-0 sm:max-w-lg md:max-w-xl overflow-hidden shadow-2xl">
+        <DialogHeader className="p-6 pb-4 border-b shrink-0 bg-background">
           <DialogTitle>{t("Novo Lead")}</DialogTitle>
           <DialogDescription>
             {t("Crie um lead manualmente neste pipeline.")}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {!contactId && (
-            <>
-              <SeletorDeContato escolhido={contato} onEscolher={escolherContato} />
-              {faltaContato && (
-                <p className="text-xs text-muted-foreground">
-                  {t("Sem contato, este lead não recebe WhatsApp nem entra nas automações.")}
-                </p>
-              )}
-            </>
-          )}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            {!contactId && (
+              <>
+                <SeletorDeContato escolhido={contato} onEscolher={escolherContato} />
+                {faltaContato && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("Sem contato, este lead não recebe WhatsApp nem entra nas automações.")}
+                  </p>
+                )}
+              </>
+            )}
 
-          <div className="space-y-2">
-            <Label htmlFor="title">{t("Título")}</Label>
-            <Input
-              id="title"
-              placeholder={t("Ex: Pedido Maria — combo presente")}
-              {...form.register("title", { required: true, minLength: 2 })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">{t("Descrição")}</Label>
-            <Textarea
-              id="description"
-              rows={3}
-              placeholder={t("Contexto, observações, links…")}
-              {...form.register("description")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>{t("Etapa")}</Label>
-            <Select
-              value={stageId}
-              onValueChange={(v) => form.setValue("stage_id", v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("Selecione a etapa")} />
-              </SelectTrigger>
-              <SelectContent>
-                {stages
-                  .filter((s) => !s.is_archived)
-                  .map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="valueReais">{t("Valor (R$)")}</Label>
+              <Label htmlFor="title">{t("Título")}</Label>
               <Input
-                id="valueReais"
-                inputMode="decimal"
-                placeholder="0,00"
-                {...form.register("valueReais")}
-              />
-              <EcoDoValor control={form.control} />
-              {form.formState.errors.valueReais && (
-                <p className="text-xs text-error-fg">
-                  {form.formState.errors.valueReais.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="expected_close_date">{t("Fechamento previsto")}</Label>
-              <Input
-                id="expected_close_date"
-                type="date"
-                {...form.register("expected_close_date")}
+                id="title"
+                placeholder={t("Ex: Pedido Maria — combo presente")}
+                {...form.register("title", { required: true, minLength: 2 })}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">{t("Descrição")}</Label>
+              <Textarea
+                id="description"
+                rows={3}
+                placeholder={t("Contexto, observações, links…")}
+                {...form.register("description")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("Etapa")}</Label>
+              <Select
+                value={stageId}
+                onValueChange={(v) => form.setValue("stage_id", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("Selecione a etapa")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {stages
+                    .filter((s) => !s.is_archived)
+                    .map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="valueReais">{t("Valor ($)")}</Label>
+                <Input
+                  id="valueReais"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  {...form.register("valueReais")}
+                />
+                <EcoDoValor control={form.control} />
+                {form.formState.errors.valueReais && (
+                  <p className="text-xs text-error-fg">
+                    {form.formState.errors.valueReais.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="expected_close_date">{t("Fechamento previsto")}</Label>
+                <Input
+                  id="expected_close_date"
+                  type="date"
+                  {...form.register("expected_close_date")}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tagsRaw">{t("Tags (separadas por vírgula)")}</Label>
+              <Input
+                id="tagsRaw"
+                placeholder="vip, recompra"
+                {...form.register("tagsRaw")}
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tagsRaw">{t("Tags (separadas por vírgula)")}</Label>
-            <Input
-              id="tagsRaw"
-              placeholder="vip, recompra"
-              {...form.register("tagsRaw")}
-            />
-          </div>
-
-          <DialogFooter>
+          <DialogFooter className="p-4 px-6 border-t bg-muted/20 shrink-0 flex flex-row items-center justify-end gap-2">
             <Button
               type="button"
               variant="ghost"

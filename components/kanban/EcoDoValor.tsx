@@ -21,5 +21,6 @@ export function EcoDoValor<T extends FieldValues>({ control }: { control: Contro
     | undefined;
   const centavos = parseReaisToCents(digitado ?? "");
   if (centavos === null) return null;
-  return <p className="text-xs text-muted-foreground">= {formatCentsBRL(centavos)}</p>;
+  const formatted = `$ ${(centavos / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return <p className="text-xs text-muted-foreground">= {formatted}</p>;
 }
