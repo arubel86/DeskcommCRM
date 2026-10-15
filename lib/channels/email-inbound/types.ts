@@ -63,7 +63,8 @@ export function normalizeEmailPayload(raw: Record<string, unknown>): ParsedEmail
   const rawFrom = data.from || data.fromAddress || data.sender || "";
   // Se vier no formato "Nome <email@dominio.com>"
   const emailMatch = rawFrom.match(/<([^>]+)>/);
-  const fromEmail = (emailMatch ? emailMatch[1] : rawFrom).trim().toLowerCase();
+  const matchedAddress = emailMatch && typeof emailMatch[1] === "string" ? emailMatch[1] : rawFrom;
+  const fromEmail = matchedAddress.trim().toLowerCase();
 
   if (!fromEmail || !fromEmail.includes("@")) {
     return null;
@@ -75,7 +76,8 @@ export function normalizeEmailPayload(raw: Record<string, unknown>): ParsedEmail
     fromName = rawFrom.replace(/<[^>]+>/, "").trim().replace(/^["']|["']$/g, "");
   }
   if (!fromName) {
-    fromName = fromEmail.split("@")[0] || fromEmail;
+    const parts = fromEmail.split("@");
+    fromName = parts[0] || fromEmail;
   }
 
   const subject = (data.subject || "Sem assunto").trim();
