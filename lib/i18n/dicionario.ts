@@ -9830,6 +9830,8 @@ export const DICIONARIO: Traducoes = {
   "Você autoriza na própria rede e retorna ao CRM. Cada perfil comporta uma conta por rede; use a mesma conta ao reconectar.": { es: "Autorizas en la propia red y vuelves al CRM. Cada perfil admite una cuenta por red; usa la misma cuenta al reconectar." },
   "Vinculada": { es: "Vinculada" },
   "Verificar conexão": { es: "Verificar conexión" },
+  "Conexão verificada": { es: "Conexión verificada" },
+  "A conexão precisa de atenção": { es: "La conexión necesita atención" },
   "Receber no atendimento": { es: "Recibir en atención" },
   "Recebimento configurado. Novas mensagens entram na caixa de entrada.": { es: "Recepción configurada. Los nuevos mensajes llegan a la bandeja de entrada." },
   "O recebimento precisa de atenção. Confira a conexão antes de atender.": { es: "La recepción requiere atención. Comprueba la conexión antes de atender." },
