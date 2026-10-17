@@ -33,6 +33,7 @@ import { type NextRequest } from "next/server";
 
 import { ok, fail } from "@/lib/api/wrappers";
 import { camposDoFunil, settingsDoEmbed } from "@/lib/leads/campos-do-funil";
+import { motivosDoFunil } from "@/lib/leads/motivos-de-perda-do-funil";
 import { createClient } from "@/lib/supabase/server";
 import { nomesDosAtendentes } from "@/lib/users/nome-do-atendente";
 
@@ -44,8 +45,10 @@ export const dynamic = "force-dynamic";
  * diferentes ficavam idênticos na lista (#943). `!inner` para filtrar funil
  * arquivado no banco, antes do `limit(3)` — `pipeline_id` é NOT NULL.
  */
+// `stage_id` e as `etapas` do funil alimentam o seletor de etapa do painel: mover
+// o negócio (ex.: "Pedido confirmado") direto da conversa, sem ir ao quadro.
 const LEAD_COLS =
-  "id, title, status, value_cents, currency, updated_at, pipeline_id, custom_fields, crm_pipelines!inner(name, settings, is_archived), crm_stages(name)";
+  "id, title, status, value_cents, currency, updated_at, pipeline_id, stage_id, custom_fields, crm_pipelines!inner(name, settings, is_archived, etapas:crm_stages!crm_stages_pipeline_id_fkey(id, name, position, is_won, is_lost, is_archived)), crm_stages!crm_leads_stage_id_fkey(name)";
 const ORDER_COLS = "id, external_id, status, total_cents, currency, created_at";
 /** Acompanha o que a timeline mostra — `reason` e `actor_kind` inclusive. */
 /**
@@ -193,7 +196,21 @@ function comCamposDoFunil(row: Record<string, unknown>) {
     field_defs: camposDoFunil(settingsDoEmbed(crm_pipelines)),
     funil_nome: nomeDoEmbed(crm_pipelines),
     etapa_nome: nomeDoEmbed(crm_stages),
+    etapas_do_funil: etapasDoEmbed(crm_pipelines),
+    // O painel da conversa não tem o quadro em cache; sem isto a janela de perda cairia no padrão do produto.
+    motivos_de_perda: motivosDoFunil(settingsDoEmbed(crm_pipelines)),
   };
+}
+
+/** As etapas ATIVAS do funil do negócio, na ordem do quadro. */
+function etapasDoEmbed(embed: unknown): Array<{ id: string; name: string; is_won: boolean; is_lost: boolean }> {
+  const alvo = Array.isArray(embed) ? embed[0] : embed;
+  const etapas = (alvo as { etapas?: unknown } | null)?.etapas;
+  if (!Array.isArray(etapas)) return [];
+  return (etapas as Array<{ id: string; name: string; position: number | string; is_won: boolean; is_lost: boolean; is_archived: boolean }>)
+    .filter((e) => !e.is_archived)
+    .sort((a, b) => Number(a.position) - Number(b.position))
+    .map((e) => ({ id: e.id, name: e.name, is_won: e.is_won, is_lost: e.is_lost }));
 }
 
 function nomeDoEmbed(embed: unknown): string | null {

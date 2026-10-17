@@ -1,4 +1,6 @@
 import type { Role } from "@/lib/auth/types";
+import type { ModuloOpcional } from "@/lib/instalacao/modulos";
+import type { CapacidadeDaOrganizacao } from "@/lib/organizacao/capacidades";
 
 /**
  * Registro de navegação — a ÚNICA lista de destinos do app do tenant.
@@ -43,6 +45,25 @@ export interface NavMetadata {
   /** Ausente = só no hub. `true` = uso diário, sobe para o sidebar. */
   sidebar?: boolean;
   healthDot?: boolean;
+  /**
+   * Contador de pendências ao lado do rótulo. `casos`: casos em que a IA espera
+   * uma pessoa (`awaiting_human`) — quem desenha é `ContadorDeCasos`. `fila`:
+   * conversas que esperam uma pessoa (a aba Fila do Inbox) — `ContadorDaFila`.
+   * Zero não desenha nada: número que nunca some ensina a ignorar o número.
+   */
+  contador?: "casos" | "fila";
+  /**
+   * A porta de um MÓDULO OPCIONAL da instalação (`lib/instalacao/modulos.ts`).
+   * Com o módulo desligado ela some do menu, do hub e do ⌘K — para todo papel.
+   * É apresentação, como o resto deste arquivo: quem recusa é a tela e a rota.
+   */
+  modulo?: ModuloOpcional;
+  /**
+   * A porta de uma CAPACIDADE que a organização liga para si
+   * (`lib/organizacao/capacidades.ts`). Desligada, some do menu, do hub e do
+   * ⌘K. Apresentação, como `modulo`: quem recusa é a tela e a rota.
+   */
+  capacidade?: CapacidadeDaOrganizacao;
 }
 
 /**
@@ -90,6 +111,26 @@ export const NAV_GROUPS: NavGroup[] = [
 export const GRUPO_NO_RODAPE: NavGroupId = "organizacao";
 
 /**
+ * A PORTA SOBE AO MENU LATERAL? — a regra, num lugar só.
+ *
+ * `sidebarGroups` (`lib/navigation/registry.ts`) e o texto de "onde o módulo aparece"
+ * (`lib/navigation/onde-o-modulo-aparece.ts`) precisam concordar: se o primeiro desenha a porta no
+ * menu e o segundo anuncia o passo do hub, o produto mente para quem liga o módulo. A condição
+ * estava ESCRITA NOS DOIS — copiada —, e cópia de regra diverge sem avisar.
+ *
+ * `temEscolhaExplicita` é "a empresa escreveu lista de áreas à mão". Ele só importa para grupo SEM
+ * hub: ali não há "Ver tudo" para hospedar a porta, então ela sobe ao menu quando a empresa
+ * personalizou. Com hub, quem decide é só o `sidebar` do destino.
+ */
+export function sobeAoMenuLateral(
+  d: Pick<NavMetadata, "sidebar" | "group">,
+  temEscolhaExplicita: boolean,
+): boolean {
+  const grupo = NAV_GROUPS.find((g) => g.id === d.group);
+  return !!d.sidebar || (!grupo?.hub && temEscolhaExplicita);
+}
+
+/**
  * Como `minRole` foi escolhido — medido tela a tela, não estimado:
  *
  *   1. A página redireciona por papel?  → usa esse papel. Assim a navegação
@@ -132,6 +173,8 @@ export const NAV_CATALOG = [
     icon: "Inbox",
     group: "atendimento",
     sidebar: true,
+    // Quantas conversas a IA passou para a equipe e esperam uma pessoa (aba Fila).
+    contador: "fila",
   },
   {
     href: "/app/radar",
@@ -194,6 +237,20 @@ export const NAV_CATALOG = [
     sidebar: true,
   },
   {
+    // A campanha vive no CRM e não em Conexões: quem a usa está pensando em
+    // QUEM vai falar, não no número que fala. O ritmo (que é de Conexões) ela
+    // herda, e só sabe deixar mais devagar.
+    href: "/app/campaigns",
+    label: "Campanhas",
+    description: "Fale com uma lista de contatos que você escolhe, no ritmo do número.",
+    icon: "Megaphone",
+    group: "crm",
+    section: "O dia a dia da venda",
+    // SÓ NO HUB, como as demais telas de preparação: o quinto item do sidebar do
+    // CRM já fez o menu rolar 13px em 900px (e2e `navegacao.spec.ts`), e a
+    // campanha é montada de vez em quando, não aberta todo dia.
+  },
+  {
     href: "/app/contacts",
     label: "Contatos",
     description: "As pessoas do outro lado da conversa e seu histórico.",
@@ -201,6 +258,30 @@ export const NAV_CATALOG = [
     group: "crm",
     section: "O dia a dia da venda",
     sidebar: true,
+  },
+  {
+    href: "/app/companies",
+    label: "Empresas",
+    description: "Cadastro B2B — razão social, CNPJ e decisores.",
+    icon: "Buildings",
+    group: "crm",
+    section: "O dia a dia da venda",
+    // SEM sidebar: o CRM já tem Funis/Contatos/Tarefas no menu diário; este trio
+    // mora no hub "Ver tudo em CRM" para não reabrir a corrida por pixel.
+    minRole: "viewer",
+    // Módulo opcional da instalação, desligado por padrão (doc 68, #1621).
+    modulo: "crm_b2b",
+  },
+  {
+    href: "/app/people",
+    label: "Pessoas",
+    description: "Decisores e contatos ligados a empresas, com vários telefones.",
+    icon: "UserCircle",
+    group: "crm",
+    section: "O dia a dia da venda",
+    minRole: "viewer",
+    // Módulo opcional da instalação, desligado por padrão (doc 68, #1621).
+    modulo: "crm_b2b",
   },
   {
     // Extraída do PR #418 (@clinicacentrodosorrisosc-code). Fica no CRM e no
@@ -215,6 +296,20 @@ export const NAV_CATALOG = [
     group: "crm",
     section: "O dia a dia da venda",
     sidebar: true,
+  },
+  {
+    // A porta dos planos de tarefa (#1752): montar a sequência UMA vez e o
+    // `apply_task_plan` aplicá-la a cada negócio. Fica no MESMO hub de Tarefas,
+    // mas SEM `sidebar` pelo critério já usado em Empresas/Pessoas: é
+    // CADASTRO, não uso diário — quem monta um plano abre esta tela poucas
+    // vezes, e o menu de 900px (`tests/e2e/navegacao.spec.ts`) não ganha mais
+    // um pixel por isso.
+    href: "/app/tasks/planos",
+    label: "Planos de tarefa",
+    description: "Sequências reutilizáveis de tarefas — montar uma vez e aplicar a cada negócio.",
+    icon: "FlowArrow",
+    group: "crm",
+    section: "O dia a dia da venda",
   },
   {
     // Módulo VoIP (migration 0347). No grupo do CRM pelo mesmo critério de
@@ -278,6 +373,26 @@ export const NAV_CATALOG = [
     // Inbox e o funil, que continuam no menu.
   },
   {
+    href: "/app/imports",
+    label: "Importações",
+    description: "Lotes CSV/XLSX de empresas, pessoas e telefones.",
+    icon: "FileText",
+    group: "crm",
+    section: "Preparar a venda",
+    minRole: "manager",
+    // Módulo opcional da instalação, desligado por padrão (doc 68, #1621).
+    modulo: "crm_b2b",
+  },
+  {
+    href: "/app/proposals",
+    label: "Propostas",
+    description: "Rascunhe, revise e envie propostas comerciais — do orçamento ao aceite.",
+    icon: "FileText",
+    group: "crm",
+    section: "Fechar a venda",
+    capacidade: "propostas",
+  },
+  {
     // A promessa que o comentário da Agenda fazia desde que ela nasceu. Aqui se
     // decide O QUE se pode marcar, quanto dura e quem atende — e é isto que a
     // tela de marcar e o agente de IA oferecem ao cliente.
@@ -299,6 +414,31 @@ export const NAV_CATALOG = [
     // tem hub, e se chega às telas dele por "Configurações". Eu tinha posto
     // `sidebar: true` e a cerca reprovou dizendo "a tela existe e não tem porta
     // na navegação" — a porta existia, era outra.
+  },
+  {
+    href: "/app/settings/tenant/proposals",
+    label: "Propostas",
+    description: "Configure a validade padrão e condições para propostas comerciais.",
+    icon: "FileText",
+    group: "organizacao",
+    section: "Sua empresa",
+    minRole: "manager",
+    // Doc 79: é aqui que a EMPRESA liga — então a porta depende só da chave da
+    // INSTALAÇÃO (a capacidade da empresa ainda está desligada quando se chega).
+    modulo: "propostas",
+    // SEM `sidebar`: mora atrás de "Configurações", como as demais telas de
+    // settings/tenant que não são de acompanhamento diário.
+  },
+  {
+    href: "/app/settings/tenant/proposals/modelos",
+    label: "Modelos de proposta",
+    description: "Personalize os modelos da plataforma ou crie os da sua empresa, inclusive a partir de uma proposta que você já usa.",
+    icon: "FileText",
+    group: "organizacao",
+    section: "Sua empresa",
+    minRole: "manager",
+    capacidade: "propostas",
+    // SEM `sidebar`, como a tela-mãe de Propostas: chega-se por Configurações.
   },
   {
     // O BALCÃO. Fica em CRM, e não em Configurações, porque é uso diário de quem
@@ -325,6 +465,10 @@ export const NAV_CATALOG = [
     // O balcão continua a um clique: CRM › Ver tudo em CRM › "O dia a dia da
     // venda", e pelo ⌘K digitando "comanda".
     minRole: "viewer",
+    // Módulo de tabela (ADR-0002, #1907): as cinco tabelas da comanda nascem na
+    // instalação do `financeiro` em `/admin/modulos`; sem ele a porta some, como
+    // `/app/honorarios`. O caixa (Configurações › Financeiro) é núcleo e fica.
+    modulo: "financeiro",
   },
   {
     // O catálogo financeiro: contas, formas de pagamento e plano de contas.
@@ -396,6 +540,23 @@ export const NAV_CATALOG = [
     sidebar: true,
   },
   {
+    // Os roteiros de atendimento (#1130, de @vgamkt): perguntas que a IA conduz
+    // durante a conversa. MÓDULO OPCIONAL da instalação, desligado por padrão
+    // (doc 64): a porta só existe onde quem administra o servidor o ligou.
+    //
+    // SEM `sidebar`, pela decisão (d) do doc 48: o menu lateral encheu e ficou
+    // configurável por empresa — o padrão não cresce; a porta mora no hub de IA
+    // e na busca, e quem usa pode pô-la no menu dela.
+    href: "/app/ai/atendimento",
+    label: "Fluxos de atendimento",
+    description: "Perguntas que a IA conduz durante a conversa, com as respostas guardadas na ficha do cliente.",
+    icon: "ListChecks",
+    group: "ia",
+    section: "Montar o agente",
+    minRole: "manager",
+    modulo: "fluxos_atendimento",
+  },
+  {
     href: "/app/ai/routers",
     label: "Roteadores",
     description: "Qual agente pega qual conversa, e quando o humano assume.",
@@ -403,7 +564,9 @@ export const NAV_CATALOG = [
     group: "ia",
     section: "Montar o agente",
     minRole: "manager",
-    sidebar: true,
+    // Saiu do sidebar para dar lugar a Casos: roteador se configura poucas
+    // vezes, e o caso pede resposta no mesmo dia. A troca é um-por-um porque o
+    // menu inteiro tem de caber em 900px (e2e `navegacao.spec.ts`).
   },
   {
     href: "/app/ai/credentials",
@@ -426,7 +589,9 @@ export const NAV_CATALOG = [
     // havia onde responder "quem usa IA aqui, e com qual chave?".
     href: "/app/ai/providers",
     label: "Provedores",
-    description: "Qual inteligência atende cada parte do sistema — e o que acontece se ela falhar.",
+    // O "Jev" vem cedo: o ⌘K mostra só o começo da descrição, e a versão
+    // longa cortava antes do nome — quem procurava "jev" achava, mas não via por quê.
+    description: "Ligue o Jev para decisões rápidas e escolha qual inteligência atende cada parte do sistema.",
     icon: "Plugs",
     group: "ia",
     section: "Montar o agente",
@@ -472,6 +637,11 @@ export const NAV_CATALOG = [
     group: "ia",
     section: "Acompanhar o agente",
     minRole: "agent",
+    // Uso diário: a IA abre caso quando precisa de uma pessoa e segue
+    // atendendo enquanto espera. Escondido no hub, o caso só era visto por quem
+    // fosse procurar — medido numa loja que vende pelo WhatsApp.
+    sidebar: true,
+    contador: "casos",
   },
   {
     href: "/app/ai/inbox",
@@ -621,6 +791,21 @@ export const NAV_CATALOG = [
     minRole: "viewer",
   },
   {
+    // Módulo opcional (ADR-0002), fonte `modulos_instalados` — a porta só existe
+    // depois que o administrador da instalação instala `honorarios` em
+    // `/admin/modulos`. Mesmo mecanismo genérico de `banco_externo` acima, só
+    // que a fonte é a TABELA, não a flag de `platform_config`; `deModuloDesligado`
+    // e este filtro não sabem a diferença, e não precisam saber.
+    href: "/app/honorarios",
+    label: "Honorários",
+    description: "O modelo de cobrança de cada caso e o calendário de parcelas.",
+    icon: "ChartBar",
+    group: "analise",
+    section: "Dinheiro",
+    minRole: "viewer",
+    modulo: "honorarios",
+  },
+  {
     href: "/app/metrics",
     label: "Desempenho",
     description: "Funil e performance por atendente nos últimos 30 dias.",
@@ -726,6 +911,20 @@ export const NAV_CATALOG = [
     minRole: "manager",
   },
   {
+    // A porta do freio POR EMPRESA do passo `ai_decide` (issue #2367). O #2228
+    // criou o passo e o deixou opcional POR REGRA; sem esta tela, desligar de
+    // uma vez todos os `ai_decide` de uma organização só existiria como
+    // `UPDATE` à mão no `organizations.settings` — o anti-exemplo de "toda
+    // configuração tem superfície" (docs/doctrine/restricao-de-canal.md).
+    href: "/app/settings/automacoes",
+    label: "Automações",
+    description: "O freio único do passo em que a IA escolhe entre as opções de uma regra, para a empresa inteira.",
+    icon: "FlowArrow",
+    group: "organizacao",
+    section: "Sua empresa",
+    minRole: "manager",
+  },
+  {
     // A porta que faltava para o vocabulário de etiquetas (issue #852). Até
     // aqui a etiqueta só ENTRAva no vocabulário — cada agente escrevia a que
     // quisesse em `add_tag` — e não havia por onde corrigir, juntar as duas
@@ -744,6 +943,20 @@ export const NAV_CATALOG = [
     icon: "Tag",
     group: "organizacao",
     section: "Sua empresa",
+    minRole: "manager",
+  },
+  {
+    // A área única dos recursos opcionais (pedido do mantenedor, doc 73/80):
+    // tudo o que a empresa pode ligar, com o estado e o caminho até a tela onde
+    // se liga. Só leitura — quem liga continua sendo a tela do assunto.
+    href: "/app/settings/recursos",
+    label: "Recursos opcionais",
+    description: "Tudo o que se liga e desliga, se está ligado e onde se ajusta.",
+    icon: "ListChecks",
+    group: "organizacao",
+    section: "Sua empresa",
+    // `manager`: o gerente decide metade das chaves da lista. Atendente e
+    // leitor não ajustam nenhuma, e a tela redireciona os dois para /403.
     minRole: "manager",
   },
   {
@@ -809,8 +1022,10 @@ export const NAV_CATALOG = [
   },
   {
     href: "/app/settings/billing",
-    label: "Billing",
-    description: "Plano e cobrança.",
+    // Spec da cobrança §9: as mensagens de limite e a Central mandam para
+    // "Configurações › Plano e cobrança" — o item precisa ter esse nome.
+    label: "Plano e cobrança",
+    description: "Pagamento, troca de plano e faturas da sua empresa.",
     icon: "Receipt",
     group: "organizacao",
     section: "Sua empresa",
@@ -844,6 +1059,32 @@ export const NAV_CATALOG = [
     minRole: "admin",
   },
   {
+    // A porta do cadastro do servidor MCP externo (#2948). Em "Dados e acesso"
+    // pela MESMA razão de API Tokens e Dados externos: é o eixo "por onde dado
+    // entra e sai do CRM" — o endereço e a chave são de um sistema de fora que
+    // a IA da empresa consulta. Antes desta linha, a action que grava
+    // (`definirServidorMcpExterno`) existia e não era chamada de lugar nenhum:
+    // registrar o servidor só era possível por fora da interface.
+    //
+    // SEM `sidebar`, como as duas vizinhas: trocar a credencial de um ERP é
+    // tarefa de uma vez, e o hub + o ⌘K já são porta suficiente.
+    //
+    // ⚠️ `minRole: "admin"` é o mais perto que este registro chega do que a
+    // tela cobra: quem ESCREVE é o dono da INSTALAÇÃO (`is_platform_admin`, a
+    // `regraPlatformAdmin` da action), e o catálogo não modela esse papel — a
+    // mesma limitação que a allowlist de `/app/settings/atualizacao` já
+    // registra em `tests/unit/navegacao-completude.test.ts`. Quem clicar sem a
+    // permissão recebe `/403` da própria tela; a porta existe porque a tela
+    // nova precisa de por onde ser encontrada (item 14 da Definition of Done).
+    href: "/app/settings/servidor-mcp-externo",
+    label: "Servidor MCP externo",
+    description: "O endereço e a chave do sistema de fora que a IA da empresa pode consultar.",
+    icon: "Plugs",
+    group: "organizacao",
+    section: "Dados e acesso",
+    minRole: "admin",
+  },
+  {
     href: "/app/extensions",
     label: "Extensões",
     description:
@@ -868,6 +1109,10 @@ export const NAV_CATALOG = [
     section: "Dados e acesso",
     // SEM `sidebar`: o menu de Organização já estourou a dobra uma vez e hub é
     // onde se agrupa por uso. Configurar fonte de dados é tarefa de uma vez.
+    //
+    // Módulo opcional da instalação, desligado por padrão (doc 37): a porta só
+    // existe onde quem administra o servidor o ligou, em `/admin/sistema`.
+    modulo: "banco_externo",
   },
 ] as const satisfies readonly NavMetadata[];
 

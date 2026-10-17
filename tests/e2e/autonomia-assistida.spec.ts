@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
+import { ehVistoAzul } from "../support/waha-visto-azul";
 import { mkdirSync, writeFileSync } from "node:fs";
 import pg from "pg";
 import { createClient } from "@supabase/supabase-js";
-import { test, expect, type Page, type TestInfo, type Locator } from "@playwright/test";
+import { test, expect, type Page, type TestInfo, type Locator } from "./helpers/test";
 import { credenciaisSupabaseDeTeste } from "../../scripts/lib/env-de-teste";
 import { createApprovedReplyHandler } from "../../lib/agent-engine/agent/approved-reply";
 import { seedPlatformPlaybook } from "../../lib/agent-engine/agent/playbook-seed";
@@ -157,7 +158,7 @@ async function login(page: Page, f: Fixture) {
   await page.goto("/login");
   await page.getByLabel(/e-?mail/i).fill(f.email);
   await page.getByLabel(/senha/i).fill(password);
-  await page.getByRole("button", { name: /entrar/i }).click();
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await page.waitForURL(/\/app(?:\/|$)/, { timeout: 60_000 });
 }
 async function capture(page: Page, target: Locator, info: TestInfo, name: string) {
@@ -188,6 +189,10 @@ async function receiver() {
   const target = new URL(process.env.WAHA_API_BASE_URL!);
   expect(["127.0.0.1", "localhost"]).toContain(target.hostname);
   const server = createServer(async (req, res) => {
+    if (ehVistoAzul(req.url)) {
+      res.end("{}");
+      return;
+    }
     let raw = "";
     for await (const part of req) raw += String(part);
     bodies.push(JSON.parse(raw));

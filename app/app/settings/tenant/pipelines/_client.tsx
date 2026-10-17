@@ -18,7 +18,14 @@ import {
 import { updatePipelineConfig } from "@/app/actions/settings/updatePipelineConfig";
 import type { PipelineConfigPatch } from "@/lib/schemas/settings";
 import { camposDoFunil } from "@/lib/leads/campos-do-funil";
+import { modoDeReabertura } from "@/lib/leads/reabertura";
+import { CATEGORIAS_DE_PERDA } from "@/lib/schemas/leads";
 import { customFieldSchema, type CustomFieldDef } from "@/lib/schemas/settings";
+import {
+  mostrarQuandoSchema,
+  OPERADORES_DE_MOSTRA,
+  type OperadorDeMostra,
+} from "@/lib/schemas/mostrar-quando";
 import { Plus, Trash } from "@/lib/ui/icons";
 import { AgentMappingSection, ancoraDoMapeamento } from "./_mapping";
 import { StagesSection, ancoraDasEtapas } from "./_stages";
@@ -55,19 +62,196 @@ export function tipoTemOpcoes(tipo: CustomFieldDef["type"]): boolean {
   return tipo === "select" || tipo === "multiselect";
 }
 
+/**
+ * Uma etapa do funil, do jeito que o editor de `obrigatorio_em` precisa ler.
+ *
+ * `is_archived` entra porque a lista É COMPLETA de propósito: descartar a etapa
+ * arquivada na leitura apagaria silenciosamente a marca que alguém já fez — o
+ * save regrava `fields` inteiro, então o que não aparece na tela some do
+ * settings. Arquivada fica visível e marcada; ela não recebe card novo, mas
+ * também não é apagada por baixo de quem a marcou.
+ */
+export interface EtapaDoFunil {
+  id: string;
+  name: string;
+  is_archived: boolean;
+}
+
+/**
+ * A regra `obrigatorio_em` normalizada — NADA MARCADO É AUSÊNCIA, não `{}`.
+ *
+ * `undefined` e `{}` significam a mesma coisa para `validaCamposExigidos`, mas
+ * só o primeiro deixa o settings do funil idêntico ao de antes do #1536: gravar
+ * `{ etapas: [], ao_ganhar: false, ao_perder: false }` encheria todo campo de
+ * uma chave morta e faria o critério de aceite nº 3 ("sem `obrigatorio_em` o
+ * comportamento é o de antes") depender de olhar para dentro do objeto.
+ */
+export function normalizaObrigatorioEm(
+  regra: CustomFieldDef["obrigatorio_em"],
+): CustomFieldDef["obrigatorio_em"] {
+  const etapas = regra?.etapas ?? [];
+  const aoGanhar = regra?.ao_ganhar === true;
+  const aoPerder = regra?.ao_perder === true;
+  if (etapas.length === 0 && !aoGanhar && !aoPerder) return undefined;
+  return {
+    ...(etapas.length > 0 ? { etapas } : {}),
+    ...(aoGanhar ? { ao_ganhar: true } : {}),
+    ...(aoPerder ? { ao_perder: true } : {}),
+  };
+}
+
+/** Liga/desliga UMA etapa na regra do campo, sem mexer no resto da marca. */
+export function comEtapa(
+  regra: CustomFieldDef["obrigatorio_em"],
+  etapaId: string,
+  marcada: boolean,
+): CustomFieldDef["obrigatorio_em"] {
+  const etapas = new Set(regra?.etapas ?? []);
+  if (marcada) etapas.add(etapaId);
+  else etapas.delete(etapaId);
+  return normalizaObrigatorioEm({ ...regra, etapas: [...etapas] });
+}
+
+/** Liga/desliga um dos dois gatilhos de FECHAMENTO (`ao_ganhar`/`ao_perder`). */
+export function comGatilho(
+  regra: CustomFieldDef["obrigatorio_em"],
+  gatilho: "ao_ganhar" | "ao_perder",
+  marcado: boolean,
+): CustomFieldDef["obrigatorio_em"] {
+  return normalizaObrigatorioEm({ ...regra, [gatilho]: marcado });
+}
+
+/**
+ * Valor do `<Select>` que significa "sem condição" (issue #2728).
+ *
+ * Radix recusa `value=""` em `<SelectItem>`, e "mostrar sempre" precisa ser um
+ * item da lista — não um placeholder que some assim que a pessoa escolhe.
+ */
+export const SEM_CONDICAO = "__sem_condicao__";
+
+/** O `<Select>` de valor também precisa de item para "ainda não escolhi". */
+export const SEM_VALOR_DA_CONDICAO = "__sem_valor_da_condicao__";
+
+/**
+ * O operador da condição, resolvendo as DUAS formas que ela pode estar gravada:
+ * a da issue (`{campo, contem: "Outro"}`) e a par que o editor escreve
+ * (`{campo, operador, valor}`). Sem condição, o padrão é `igual` — é o que o
+ * seletor mostra antes de a pessoa montar a regra.
+ */
+export function operadorDaCondicao(condicao: CustomFieldDef["mostrar_quando"]): OperadorDeMostra {
+  if (condicao?.operador) return condicao.operador;
+  return OPERADORES_DE_MOSTRA.find((op) => condicao?.[op] !== undefined) ?? "igual";
+}
+
+/**
+ * O valor da condição como TEXTO: é o que o input devolve, é o que a pessoa
+ * digita, e é o que `campoVisivel` compara (`"2"` e `2` casam na régua de
+ * número lá).
+ */
+export function valorDaCondicao(condicao: CustomFieldDef["mostrar_quando"]): string {
+  const valor =
+    condicao?.operador !== undefined ? condicao?.valor : condicao?.[operadorDaCondicao(condicao)];
+  return valor === undefined || valor === null ? "" : String(valor);
+}
+
+/**
+ * Monta a condição de volta na forma GRAVÁVEL — a que `mostrarQuandoSchema`
+ * valida.
+ *
+ * Sem campo não há condição (a pessoa limpou o seletor, ou escolheu "Sempre
+ * mostrar"). Com campo mas sem valor, a condição fica MEIO montada na tela —
+ * é o estado de quem está digitando — e `normalizaMostrarQuando` a descarta
+ * no save, do mesmo jeito que `obrigatorio_em` sem nenhuma marca é ausência.
+ */
+export function escreveMostrarQuando(
+  condicao: CustomFieldDef["mostrar_quando"],
+  mudanca: { campo?: string; operador?: OperadorDeMostra; valor?: string },
+): CustomFieldDef["mostrar_quando"] {
+  const proximo = {
+    campo: mudanca.campo ?? condicao?.campo ?? "",
+    operador: mudanca.operador ?? operadorDaCondicao(condicao),
+    valor: mudanca.valor ?? valorDaCondicao(condicao),
+  };
+  const campo = proximo.campo.trim();
+  if (campo.length === 0) return undefined;
+  // O item "ainda não escolhi" do seletor de valor não é valor: gravá-lo
+  // deixava a condição completa casando com nada, e o campo sumia para sempre.
+  const valor = proximo.valor === SEM_VALOR_DA_CONDICAO ? "" : proximo.valor.trim();
+  return {
+    campo,
+    operador: proximo.operador,
+    ...(valor.length > 0 ? { valor } : {}),
+  };
+}
+
+/**
+ * A condição só grava quando está COMPLETA — o espelho exato de
+ * `normalizaObrigatorioEm`: meio montada é ausência, e não um save que
+ * recusa a tela inteira com a mensagem de um campo que a pessoa nem terminou
+ * de configurar.
+ */
+export function normalizaMostrarQuando(
+  condicao: CustomFieldDef["mostrar_quando"],
+): CustomFieldDef["mostrar_quando"] {
+  return mostrarQuandoSchema.safeParse(condicao).success ? condicao : undefined;
+}
+
+/**
+ * Os RÓTULOS cadastrados (issue #1537): `lost_reasons` aceita texto puro E
+ * `{ label, categoria }`, e esta caixa é sempre rótulo — o objeto é guardado
+ * aqui embaixo, na hora de salvar.
+ */
 function readLostReasons(settings: Record<string, unknown> | null): string[] {
   if (!settings) return [];
   const r = (settings as { lost_reasons?: unknown }).lost_reasons;
-  return Array.isArray(r) ? (r as string[]) : [];
+  if (!Array.isArray(r)) return [];
+  return r
+    .map((item) => (typeof item === "string" ? item : (item as { label?: unknown })?.label))
+    .filter((v): v is string => typeof v === "string");
 }
 
+/** Rótulo → categoria gravada (issue #1537). Sem categoria é ausência, não "". */
+function readCategorias(settings: Record<string, unknown> | null): Record<string, string> {
+  const saida: Record<string, string> = {};
+  if (!settings) return saida;
+  const r = (settings as { lost_reasons?: unknown }).lost_reasons;
+  if (!Array.isArray(r)) return saida;
+  for (const item of r) {
+    if (typeof item !== "object" || item === null) continue;
+    const { label, categoria } = item as { label?: unknown; categoria?: unknown };
+    if (typeof label === "string" && typeof categoria === "string" && categoria.trim()) {
+      saida[label.trim()] = categoria.trim();
+    }
+  }
+  return saida;
+}
+
+
+function readWonReasons(settings: Record<string, unknown> | null): string[] {
+  const r = (settings as { won_reasons?: unknown } | null)?.won_reasons;
+  return Array.isArray(r) ? r.filter((v): v is string => typeof v === "string") : [];
+}
 export function PipelinesClient({
   pipelines,
+  etapas = {},
   podeEditarConfig,
+  comandaDisponivel = false,
 }: {
   pipelines: PipelineRow[];
+  /**
+   * As etapas de cada funil por id de funil — o que o editor de `obrigatorio_em`
+   * oferece como "exigir ao entrar aqui". Opcional só para os testes que não
+   * exercitam esta regra; a página sempre manda.
+   */
+  etapas?: Record<string, EtapaDoFunil[]>;
   /** Vocabulário/custom fields são admin (a server action recusa o resto). */
   podeEditarConfig: boolean;
+  /**
+   * O módulo `financeiro` está instalado (#1907)? Sem ele não existe comanda, e o
+   * interruptor "abrir comanda ao ganhar" some. Ausente = desligado (falha
+   * fechada); a página sempre manda.
+   */
+  comandaDisponivel?: boolean;
 }) {
   const t = useT();
   if (pipelines.length === 0) {
@@ -100,14 +284,28 @@ export function PipelinesClient({
           <div className="border-t border-border pt-6">
             <AgentMappingSection pipelineId={p.id} ancoraEtapas={ancoraDasEtapas(p.id)} />
           </div>
-          {podeEditarConfig && <PipelineEditor pipeline={p} />}
+          {podeEditarConfig && (
+            <PipelineEditor
+              pipeline={p}
+              etapas={etapas[p.id] ?? []}
+              comandaDisponivel={comandaDisponivel}
+            />
+          )}
         </Card>
       ))}
     </div>
   );
 }
 
-function PipelineEditor({ pipeline }: { pipeline: PipelineRow }) {
+function PipelineEditor({
+  pipeline,
+  etapas,
+  comandaDisponivel,
+}: {
+  pipeline: PipelineRow;
+  etapas: EtapaDoFunil[];
+  comandaDisponivel: boolean;
+}) {
   const t = useT();
   const v = pipeline.vocabulary ?? {};
   const [lead, setLead] = useState(v.lead ?? "Lead");
@@ -115,6 +313,22 @@ function PipelineEditor({ pipeline }: { pipeline: PipelineRow }) {
   const [won, setWon] = useState(v.won ?? "Ganho");
   const [lost, setLost] = useState(v.lost ?? "Perdido");
   const [reasonsText, setReasonsText] = useState(readLostReasons(pipeline.settings).join(", "));
+  const [wonReasonsText, setWonReasonsText] = useState(readWonReasons(pipeline.settings).join(", "));
+  const [categorias, setCategorias] = useState<Record<string, string>>(() =>
+    readCategorias(pipeline.settings),
+  );
+  const [wonRequired, setWonRequired] = useState(
+    (pipeline.settings as { won_reason_required?: unknown } | null)?.won_reason_required === true,
+  );
+  // A comanda do ganho (#1477): opt-in, e o PADRÃO é a chave ausente — só o
+  // `true` explícito liga. Ausência aqui renderiza desmarcado, que é o mesmo
+  // que o consumidor de `lead.won` lê no banco.
+  const [comandaNoGanho, setComandaNoGanho] = useState(
+    (pipeline.settings as { comanda_no_ganho?: unknown } | null)?.comanda_no_ganho === true,
+  );
+  const [retomaComoNovo, setRetomaComoNovo] = useState(
+    modoDeReabertura(pipeline.settings) === "novo_negocio",
+  );
   const [fields, setFields] = useState<CustomFieldDef[]>(camposDoFunil(pipeline.settings));
   const [isPending, startTransition] = useTransition();
 
@@ -136,7 +350,20 @@ function PipelineEditor({ pipeline }: { pipeline: PipelineRow }) {
               .filter((o) => o.label !== ""),
           }
         : f;
-      const parsed = customFieldSchema.safeParse(limpo);
+      // A regra de `obrigatorio_em` é normalizada AQUI, e não só durante a
+      // digitação: um campo que chegou do settings com `{}` ou com marca
+      // desligada sai sem a chave — é o que mantém o funil idêntico ao de antes
+      // do #1536 enquanto ninguém marca nada.
+      const { obrigatorio_em: regraBruta, ...semRegra } = limpo;
+      const regra = normalizaObrigatorioEm(regraBruta);
+      const base = regra ? { ...semRegra, obrigatorio_em: regra } : semRegra;
+      // A condição de exibição passa pela MESMA régua (#2728): meio montada é
+      // ausência, e não um save recusado com a mensagem de um campo que a
+      // pessoa nem terminou de configurar.
+      const { mostrar_quando: condicaoBruta, ...semCondicao } = base;
+      const condicao = normalizaMostrarQuando(condicaoBruta);
+      const comCondicao = condicao ? { ...semCondicao, mostrar_quando: condicao } : semCondicao;
+      const parsed = customFieldSchema.safeParse(comCondicao);
       if (!parsed.success) {
         toast.error(parsed.error.issues[0]?.message ?? t("Campo inválido."));
         return;
@@ -147,11 +374,27 @@ function PipelineEditor({ pipeline }: { pipeline: PipelineRow }) {
       .split(",")
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
+    // #1537: motivo com categoria vira `{ label, categoria }`; sem categoria
+    // continua string pura — formato que todo funil já tem e que o trigger
+    // aceita igual.
+    const motivosComCategoria = reasons.map((rotulo) => {
+      const categoria = categorias[rotulo];
+      return categoria ? { label: rotulo, categoria } : rotulo;
+    });
+
+    const wonReasons = wonReasonsText
+      .split(",")
+      .map((s2) => s2.trim())
+      .filter((s2) => s2.length > 0);
 
     const patch: PipelineConfigPatch = {
       vocabulary: { lead, deal, won, lost },
       fields: ok,
-      lost_reasons: reasons,
+      lost_reasons: motivosComCategoria,
+      won_reasons: wonReasons,
+      won_reason_required: wonRequired,
+      comanda_no_ganho: comandaNoGanho,
+      reabertura: retomaComoNovo ? "novo_negocio" : "mesmo_registro",
     };
     startTransition(async () => {
       const r = await updatePipelineConfig(pipeline.id, patch);
@@ -160,6 +403,11 @@ function PipelineEditor({ pipeline }: { pipeline: PipelineRow }) {
     });
   }
 
+
+  const motivosDaCaixa = reasonsText
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 
   return (
     <div className="space-y-4 border-t border-border pt-6">
@@ -187,7 +435,109 @@ function PipelineEditor({ pipeline }: { pipeline: PipelineRow }) {
       <div className="space-y-1">
         <Label className="text-xs">{t("Motivos de perda (separados por vírgula)")}</Label>
         <Input value={reasonsText} onChange={(e) => setReasonsText(e.target.value)} />
+        {/*
+          #1537 — a categoria de CADA motivo, não um campo só: é ela que o
+          relatório "Perdas" e o filtro do quadro agrupam. Só aparece para
+          motivo já escrito na caixa de cima: a lista continua sendo texto e a
+          ordem continua sendo a do texto; o que muda é que cada item ganhou
+          um campo. `__sem__` porque o Select recusa value="".
+        */}
+        {motivosDaCaixa.map((motivo) => {
+          const opcoes = [
+            ...new Set([
+              ...CATEGORIAS_DE_PERDA,
+              ...(categorias[motivo] ? [categorias[motivo]] : []),
+            ]),
+          ];
+          return (
+            <div key={motivo} className="flex items-center gap-2">
+              <span className="w-56 truncate text-xs text-muted-foreground">{motivo}</span>
+              <Select
+                value={categorias[motivo] ?? "__sem__"}
+                onValueChange={(valor) =>
+                  setCategorias((atual) => {
+                    const proximo = { ...atual };
+                    if (valor === "__sem__") delete proximo[motivo];
+                    else proximo[motivo] = valor;
+                    return proximo;
+                  })
+                }
+              >
+                <SelectTrigger className="h-8 w-56 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__sem__">{t("Sem categoria")}</SelectItem>
+                  {opcoes.map((categoria) => (
+                    <SelectItem key={categoria} value={categoria}>
+                      {categoria}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+        })}
       </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs">{t("Motivos de ganho (separados por vírgula)")}</Label>
+        <Input value={wonReasonsText} onChange={(e) => setWonReasonsText(e.target.value)} />
+        <p className="text-xs text-muted-foreground">
+          {t(
+            "Sem motivos cadastrados o motivo de ganho é texto livre. Com a lista, só o que está nela é aceito.",
+          )}
+        </p>
+        <label className="flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={wonRequired}
+            onChange={(e) => setWonRequired(e.target.checked)}
+          />
+          {t("Exigir motivo de ganho ao fechar como ganho")}
+        </label>
+      </div>
+
+      <div className="space-y-1">
+        <label className="flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={retomaComoNovo}
+            onChange={(e) => setRetomaComoNovo(e.target.checked)}
+          />
+          {t("Negócio encerrado que volta abre um negócio novo")}
+        </label>
+        <p className="text-xs text-muted-foreground">
+          {t(
+            "Desligado, arrastar um negócio perdido ou ganho para uma etapa aberta reabre o mesmo negócio. Ligado, o encerrado fica como está e o quadro oferece criar uma nova tentativa com o mesmo contato.",
+          )}
+        </p>
+      </div>
+
+      {/* ─── A COMANDA DO GANHO (#1477) ───────────────────────────────
+          Porta do consumidor de `lead.won`. Desligada por padrão, pela régua
+          de `docs/doctrine/extensoes.md`: quem não ativar continua com a
+          operação inteira, e em loja com checkout o valor do negócio não é
+          conta a receber. Sem o módulo `financeiro` instalado (#1907) não
+          há comanda, e o interruptor some; o valor salvo no funil fica como
+          está, e o consumidor também confere o módulo. */}
+      {comandaDisponivel && (
+        <div className="space-y-1">
+          <label className="flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={comandaNoGanho}
+              onChange={(e) => setComandaNoGanho(e.target.checked)}
+            />
+            {t("Abrir comanda ao ganhar um negócio neste funil")}
+          </label>
+          <p className="text-xs text-muted-foreground">
+            {t(
+              "Desligado, ganhar não mexe no financeiro: loja com checkout, infoproduto e imobiliária não vivem de conta a receber. Ligado, o arrasto para a etapa de ganho e o botão Ganhar abrem uma comanda com o valor e o contato do negócio.",
+            )}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label className="text-xs">{t("Campos do lead neste funil")}</Label>
@@ -230,7 +580,7 @@ function PipelineEditor({ pipeline }: { pipeline: PipelineRow }) {
               <SelectContent>
                 {TIPOS_DE_CAMPO.map((tipo) => (
                   <SelectItem key={tipo} value={tipo}>
-                    {tipo}
+                    {tipo === "currency" ? t("Moeda (BRL)") : tipo}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -273,6 +623,197 @@ function PipelineEditor({ pipeline }: { pipeline: PipelineRow }) {
                 }}
               />
             )}
+            {/* ── QUANDO ESTE CAMPO OBRIGA (issue #1536) ────────────────────
+                O `obrigatorio_em` nasceu no schema sem nenhuma tela: quem
+                operava não conseguia ligar a régua principal do PR. As três
+                marcas são as que `campoExigidoNoDestino` lê — etapas de
+                entrada, `ao_ganhar` e `ao_perder` — e nada mais, para a tela
+                não prometer gatilho que o servidor não pergunta. */}
+            <div className="space-y-1 md:col-span-4">
+              <p className="text-xs font-medium">{t("Exigir o preenchimento:")}</p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                {etapas.map((e) => (
+                  <label key={e.id} className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      aria-label={`${t("Exigir em")} ${e.name} — ${f.label || i + 1}`}
+                      checked={f.obrigatorio_em?.etapas?.includes(e.id) ?? false}
+                      onChange={(ev) => {
+                        const next = [...fields];
+                        next[i] = {
+                          ...f,
+                          obrigatorio_em: comEtapa(f.obrigatorio_em, e.id, ev.target.checked),
+                        };
+                        setFields(next);
+                      }}
+                    />
+                    {e.name}
+                    {e.is_archived ? ` (${t("arquivada")})` : ""}
+                  </label>
+                ))}
+                <label className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    aria-label={`${t("Ao ganhar")} — ${f.label || i + 1}`}
+                    checked={f.obrigatorio_em?.ao_ganhar === true}
+                    onChange={(ev) => {
+                      const next = [...fields];
+                      next[i] = {
+                        ...f,
+                        obrigatorio_em: comGatilho(f.obrigatorio_em, "ao_ganhar", ev.target.checked),
+                      };
+                      setFields(next);
+                    }}
+                  />
+                  {t("Ao ganhar")}
+                </label>
+                <label className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    aria-label={`${t("Ao perder")} — ${f.label || i + 1}`}
+                    checked={f.obrigatorio_em?.ao_perder === true}
+                    onChange={(ev) => {
+                      const next = [...fields];
+                      next[i] = {
+                        ...f,
+                        obrigatorio_em: comGatilho(f.obrigatorio_em, "ao_perder", ev.target.checked),
+                      };
+                      setFields(next);
+                    }}
+                  />
+                  {t("Ao perder")}
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  "Sem marca nenhuma este campo nunca é exigido — é o comportamento de sempre. Marcado, ele precisa estar preenchido para o negócio entrar na etapa escolhida ou ser fechado como ganho/perdido.",
+                )}
+              </p>
+            </div>
+            {/* ── QUANDO ESTE CAMPO APARECE (issue #2728) ──────────────────
+                A condição que a ficha do contato, o dossiê e o painel do inbox
+                leem para ESCONDER o campo. Campo + operador + valor, e os
+                operadores são exatamente os três que `campoVisivel` aplica —
+                a tela não promete nenhum outro. Meio montada, a condição não
+                grava (ver `normalizaMostrarQuando`), como `obrigatorio_em`. */}
+            <div className="space-y-1 md:col-span-4">
+              <p className="text-xs font-medium">{t("Mostrar só quando:")}</p>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <Select
+                  value={f.mostrar_quando?.campo || SEM_CONDICAO}
+                  onValueChange={(campo) => {
+                    const next = [...fields];
+                    next[i] = {
+                      ...f,
+                      mostrar_quando:
+                        campo === SEM_CONDICAO
+                          ? undefined
+                          : escreveMostrarQuando(f.mostrar_quando, { campo }),
+                    };
+                    setFields(next);
+                  }}
+                >
+                  <SelectTrigger aria-label={`${t("Campo da condição")} ${f.label || i + 1}`}>
+                    <SelectValue placeholder={t("Sempre mostrar")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={SEM_CONDICAO}>{t("Sempre mostrar")}</SelectItem>
+                    {fields
+                      .filter((outra, j) => j !== i && outra.key.trim().length > 0)
+                      .map((outra) => (
+                        <SelectItem key={outra.key} value={outra.key}>
+                          {outra.label || outra.key}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {f.mostrar_quando?.campo && (
+                  <>
+                    <Select
+                      value={operadorDaCondicao(f.mostrar_quando)}
+                      onValueChange={(op) => {
+                        const next = [...fields];
+                        next[i] = {
+                          ...f,
+                          mostrar_quando: escreveMostrarQuando(f.mostrar_quando, {
+                            operador: op as OperadorDeMostra,
+                          }),
+                        };
+                        setFields(next);
+                      }}
+                    >
+                      <SelectTrigger
+                        aria-label={`${t("Operador da condição")} ${f.label || i + 1}`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="igual">{t("é igual a")}</SelectItem>
+                        <SelectItem value="contem">{t("contém")}</SelectItem>
+                        <SelectItem value="maior_que">{t("é maior que")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {/* O valor vem de lista quando o campo que MANDA na condição
+                        é de lista fechada: digitar "Outro" errado deixaria a
+                        condição montada e quieta, casando com nada. */}
+                    {tipoTemOpcoes(
+                      fields.find((o) => o.key === f.mostrar_quando?.campo)?.type ?? "text",
+                    ) ? (
+                      <Select
+                        value={valorDaCondicao(f.mostrar_quando) || SEM_VALOR_DA_CONDICAO}
+                        onValueChange={(valor) => {
+                          const next = [...fields];
+                          next[i] = {
+                            ...f,
+                            mostrar_quando: escreveMostrarQuando(f.mostrar_quando, { valor }),
+                          };
+                          setFields(next);
+                        }}
+                      >
+                        <SelectTrigger
+                          aria-label={`${t("Valor da condição")} ${f.label || i + 1}`}
+                        >
+                          <SelectValue placeholder={t("Valor da condição")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={SEM_VALOR_DA_CONDICAO}>
+                            {t("Valor da condição")}
+                          </SelectItem>
+                          {fields
+                            .find((o) => o.key === f.mostrar_quando?.campo)
+                            ?.options?.map((o) => (
+                              <SelectItem key={o.value} value={o.value}>
+                                {o.label}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        className="w-40"
+                        aria-label={`${t("Valor da condição")} ${f.label || i + 1}`}
+                        value={valorDaCondicao(f.mostrar_quando)}
+                        onChange={(ev) => {
+                          const next = [...fields];
+                          next[i] = {
+                            ...f,
+                            mostrar_quando: escreveMostrarQuando(f.mostrar_quando, {
+                              valor: ev.target.value,
+                            }),
+                          };
+                          setFields(next);
+                        }}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  "Escondido, o campo não aparece no formulário nem é validado como obrigatório, e o valor já gravado continua no registro.",
+                )}
+              </p>
+            </div>
           </div>
         ))}
         {fields.length < 50 && (
