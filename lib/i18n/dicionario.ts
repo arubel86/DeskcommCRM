@@ -10995,6 +10995,7 @@ export const DICIONARIO: Traducoes = {
   "Não publicado": { es: "No publicado" },
   "Confirme a presença no compromisso": {
     es: "Confirme la asistencia a la cita",
+  },
   // Editor da jornada (Equipe › Atendimento) — issue #2312.
   "Copiar estes horários para os outros dias úteis": {
     es: "Copiar estos horarios a los otros días hábiles",
