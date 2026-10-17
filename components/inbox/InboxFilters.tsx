@@ -82,6 +82,7 @@ export interface InboxFiltersValue {
   tab: InboxTab;
   search: string;
   onlyUnread: boolean;
+  channel_session_id?: string;
   channelType?: ChannelTypeFilter;
   /**
    * A etiqueta escolhida, ou VÁRIAS (#1274).
