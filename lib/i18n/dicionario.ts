@@ -1512,7 +1512,6 @@ export const DICIONARIO: Traducoes = {
   },
   "Buscar mensagens…": { es: "Buscar mensajes…" },
   "Todos os números": { es: "Todos los números" },
-  "Todos os canais": { es: "Todos los canales" },
   Correio: { es: "Correo" },
   "Todas as tags": { es: "Todas las etiquetas" },
   // #1274 — filtro por VÁRIAS etiquetas (E/OU). As duas entradas novas do menu
@@ -1636,7 +1635,6 @@ export const DICIONARIO: Traducoes = {
   "Sem atividade.": { es: "Sin actividad." },
   "Nova tag…": { es: "Nueva etiqueta…" },
   // lib/atendimento/proximo-passo-padrao.ts — o texto que o banco grava na demanda nova
-  "Responder à nova mensagem do cliente": { es: "Responder al nuevo mensaje del cliente" },
   "Sem próximo passo definido": { es: "Sin siguiente paso definido" },
   "Marcar próximo passo": { es: "Definir siguiente paso" },
   Lead: { es: "Lead" },
