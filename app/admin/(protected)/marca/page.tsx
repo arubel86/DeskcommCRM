@@ -17,7 +17,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 
 import { FormularioDaMarca } from "./_form";
 
-export const metadata = { title: "Marca da instalação" };
+export const metadata = { title: "Marca de la instalación" };
 export const dynamic = "force-dynamic";
 
 /**
@@ -88,7 +88,7 @@ export default async function Page() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{traduzir("Marca", idioma)}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{traduzir("Marca da instalação", idioma)}</h1>
         <p className="mt-1 text-sm text-text-muted">
           {traduzir(
             "O nome e a cor que este sistema mostra para todo mundo que usa esta instalação.",

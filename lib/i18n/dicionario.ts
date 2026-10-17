@@ -37,6 +37,12 @@ import type { Idioma } from "./idiomas";
 type Traducoes = Record<string, Partial<Record<Exclude<Idioma, "pt-BR">, string>>>;
 
 export const DICIONARIO: Traducoes = {
+  "Marca da instalação": { es: "Marca de la instalación" },
+  "Marca da organização": { es: "Marca de la organización" },
+  "Salvar": { es: "Guardar" },
+  "Remover": { es: "Eliminar" },
+  "A cor principal dos botões foi ajustada para um tom mais escuro, para o texto em cima dela ficar legível.": { es: "El color principal de los botones se ajustó a un tono más oscuro para que el texto sobre él sea legible." },
+  "A cor principal dos botões foi ajustada para um tom mais claro, para o texto em cima dela ficar legível.": { es: "El color principal de los botones se ajustó a un tono más claro para que el texto sobre él sea legible." },
   "Há um ajuste proporcional esperando pagamento. Escolher outro plano cancela esse ajuste.": { es: "Hay un ajuste proporcional esperando el pago. Elegir otro plan cancela ese ajuste." },
   "Estamos preparando o ajuste proporcional. Aguarde alguns segundos e tente novamente.": { es: "Estamos preparando el ajuste proporcional. Espera unos segundos e inténtalo de nuevo." },
   "Estamos preparando o ajuste proporcional. Aguarde alguns segundos.": { es: "Estamos preparando el ajuste proporcional. Espera unos segundos." },
