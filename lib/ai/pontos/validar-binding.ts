@@ -79,27 +79,25 @@ export function validarBinding(entrada: {
   }
 
   if (ponto.exige.tools === true && !entrada.modelo.supports_tools) {
+    const rotulo = ponto.rotulo === "Ver a imagem do cliente" ? "Ver la imagen del cliente" : ponto.rotulo;
     return {
       ok: false,
       codigo: "modelo_sem_ferramentas",
-      // A mensagem descreve a CONSEQUÊNCIA, não a limitação técnica. "Não
-      // suporta function calling" não diz nada a quem não é engenheiro — e é
-      // exatamente essa pessoa que está na tela escolhendo.
+      // El mensaje describe la consecuencia, no la limitación técnica.
       mensagem:
-        `"${entrada.modelo.model_id}" não sabe usar as ferramentas do CRM. Em "${ponto.rotulo}" isso significa que ` +
-        `o agente conversaria normalmente com o cliente, mas não criaria o lead nem moveria o funil — e sem nenhum ` +
-        `erro aparecer na tela. Escolha um modelo com suporte a ferramentas.`,
+        `"${entrada.modelo.model_id}" no puede usar las herramientas del CRM. En "${rotulo}" esto significa que ` +
+        `el agente conversaría normalmente con el cliente, pero no crearía el lead ni movería el embudo — y sin que ` +
+        `aparezca ningún error en pantalla. Elige un modelo compatible con herramientas.`,
     };
   }
 
   const avisos: string[] = [];
   if (ponto.exige.imagem === true && !entrada.modelo.supports_vision) {
-    // AVISO, não recusa: `agent_turn` exige imagem para ler o print que o
-    // cliente manda, mas um agente que só lê texto ainda atende — mal, e o
-    // operador precisa saber disso, não ser impedido.
+    // AVISO, no rechazo: agent_turn requiere imagen para leer fotos que envía el cliente.
+    const rotulo = ponto.rotulo === "Ver a imagem do cliente" ? "Ver la imagen del cliente" : ponto.rotulo;
     avisos.push(
-      `"${entrada.modelo.model_id}" não enxerga imagens. Em "${ponto.rotulo}", fotos e comprovantes que o cliente ` +
-        `enviar vão ser ignorados pelo agente.`,
+      `"${entrada.modelo.model_id}" no procesa imágenes. En "${rotulo}", las fotos y comprobantes que envíe el cliente ` +
+        `serán ignorados por el agente.`,
     );
   }
 
