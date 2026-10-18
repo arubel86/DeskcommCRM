@@ -188,7 +188,7 @@ function FormularioDoAviso({ estado }: { estado: EstadoDoAviso }) {
       }
       toast.error(
         erro instanceof ApiError
-          ? erro.message
+          ? t(erro.message)
           : t("Não foi possível salvar o aviso. Tente de novo."),
       );
     }
@@ -301,7 +301,7 @@ function FormularioDoAviso({ estado }: { estado: EstadoDoAviso }) {
           className="flex flex-col gap-2 rounded-lg border border-destructive/40 bg-destructive/5 p-3"
           data-testid="confirmar-numero-de-cliente"
         >
-          <p className="text-sm font-medium">{confirmarContato}</p>
+          <p className="text-sm font-medium">{t(confirmarContato)}</p>
           <p className="text-xs text-muted-foreground">
             {t(
               "Esse número passa a ser só da equipe: o que ele mandar deixa de virar atendimento.",

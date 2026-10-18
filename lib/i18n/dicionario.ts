@@ -13860,6 +13860,14 @@ export const DICIONARIO: Traducoes = {
     { es: "Elegir otro número" },
   "Esse número ainda não está completo.":
     { es: "Ese número todavía no está completo." },
+  "Esse número já é de um cliente seu. Se você continuar, as mensagens dele param de chegar ao CRM.":
+    { es: "Este número ya es de un cliente tuyo. Si continúas, sus mensajes dejarán de llegar al CRM." },
+  "Esse número não é válido. Use o código do país, por exemplo +55 31 99999-8888.":
+    { es: "Este número no es válido. Usa el código de país, por ejemplo +507 6000-0000." },
+  "A conexão escolhida não existe mais nesta conta. Escolha outra.":
+    { es: "La conexión seleccionada ya no existe en esta cuenta. Elige otra." },
+  "Esse é um dos números conectados da sua conta. Ele não pode receber os avisos, senão um responde ao outro sem parar.":
+    { es: "Este es uno de los números conectados de tu cuenta. No puede recibir avisos, de lo contrario se responderían entre sí sin parar." },
   "Esse número passa a ser só da equipe: o que ele mandar deixa de virar atendimento.":
     { es: "Ese número pasa a ser solo del equipo: lo que envíe deja de convertirse en atención." },
   "Este número ainda está em aquecimento":
