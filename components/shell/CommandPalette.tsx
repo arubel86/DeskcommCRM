@@ -171,7 +171,7 @@ function Resultados({ aoEscolher }: { aoEscolher: () => void }) {
 
   return (
     <>
-      <div className="flex items-center gap-3 border-b px-4">
+      <div className="flex items-center gap-3 border-b pl-4 pr-12 sm:pr-14">
         <MagnifyingGlass size={18} aria-hidden className="shrink-0 text-muted-foreground" />
         <input
           autoFocus
