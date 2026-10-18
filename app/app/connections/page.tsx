@@ -7,8 +7,14 @@ import { ConexoesShell } from "@/components/connections/ConexoesShell";
 import { canalGraphParceiroLigado, GRAPH_PARTNER_LABEL } from "@/lib/channels/graph-parceiro/credentials";
 import { traduzir } from "@/lib/i18n/dicionario";
 
-export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Conexões" };
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const user = await requireAuth();
+    return { title: traduzir("Conexões", user.idioma) };
+  } catch {
+    return { title: "Conexiones" };
+  }
+}
 
 export default async function ConnectionsPage() {
   const user = await requireAuth();
