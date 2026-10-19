@@ -95,16 +95,18 @@ export function RulesTab() {
             <p className="text-sm text-muted-foreground">
               {t("Ex.: quando entrar um contato novo, enviar uma mensagem de boas-vindas.")}
             </p>
-            <Button onClick={openCreate}>
-              <Plus /> {t("Nova automação")}
-            </Button>
-            {/* Fase 1 do designer: a mesma automação, montada no canvas. É link
-                (não botão) para não colidir com quem procura "Nova automação". */}
-            <Button asChild variant="secondary">
-              <Link href={DESIGNER_NOVA}>
-                <FlowArrow /> {t("Montar no designer")}
-              </Link>
-            </Button>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button onClick={openCreate} className="w-full sm:w-auto">
+                <Plus /> {t("Nova automação")}
+              </Button>
+              {/* Fase 1 do designer: a mesma automação, montada no canvas. É link
+                  (não botão) para não colidir com quem procura "Nova automação". */}
+              <Button asChild variant="secondary" className="w-full sm:w-auto">
+                <Link href={DESIGNER_NOVA}>
+                  <FlowArrow /> {t("Montar no designer")}
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
         <RuleEditor open={editorOpen} onOpenChange={setEditorOpen} rule={editing} />
