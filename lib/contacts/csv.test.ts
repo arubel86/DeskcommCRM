@@ -350,7 +350,7 @@ describe("limites declarados", () => {
     // Guarda barata: a rota lê estas constantes; o teste existe para o dia em
     // que alguém mudar um lado sem ver o outro.
     expect(CSV_MAX_BYTES).toBe(5 * 1024 * 1024);
-    expect(CSV_MAX_DATA_ROWS).toBe(500);
+    expect(CSV_MAX_DATA_ROWS).toBe(2000);
   });
 });
 
@@ -368,5 +368,48 @@ describe("normalizaData recusa data com forma certa e dia inexistente", () => {
   it("29/02 em ano BISSEXTO continua valendo — a guarda não pode ser larga demais", () => {
     expect(normalizaData("29/02/2024")).toBe("2024-02-29");
     expect(normalizaData("29/02/2023")).toBeNull();
+  });
+});
+
+describe("Google Contacts / Android CSV export (de ponta a ponta)", () => {
+  it("reconhece colunas First Name, Last Name, Phone 1 - Value, E-mail 1 - Value, Labels", () => {
+    const csv = [
+      "First Name,Last Name,Organization Name,Labels,E-mail 1 - Value,Phone 1 - Value",
+      "Arubel,Aizprua,Aizprua S.E.,* myContacts,info@aizprua.com,6546-1527",
+    ].join("\n");
+    const [cabecalho, linha] = parseCsv(csv);
+    const { indices, motivo: motivoHeader } = mapHeader(cabecalho!);
+    expect(motivoHeader).toBeNull();
+    expect(indices.first_name).toBe(0);
+    expect(indices.last_name).toBe(1);
+    expect(indices.organization_name).toBe(2);
+    expect(indices.tags).toBe(3);
+    expect(indices.email).toBe(4);
+    expect(indices.phone_number).toBe(5);
+
+    const { contato, motivo } = mapLinha(linha!, indices, undefined, undefined, "+50761234567");
+    expect(motivo).toBeNull();
+    expect(contato.name).toBe("Arubel Aizprua");
+    expect(contato.display_name).toBe("Aizprua S.E.");
+    expect(contato.email).toBe("info@aizprua.com");
+    expect(contato.phone_number).toBe("+50765461527");
+  });
+
+  it("aceita contato que só tem Organization Name (sem First/Last Name)", () => {
+    const csv = [
+      "First Name,Last Name,Organization Name,Phone 1 - Value",
+      ",,BannerLand,6495-0968",
+    ].join("\n");
+    const [cabecalho, linha] = parseCsv(csv);
+    const { indices } = mapHeader(cabecalho!);
+    const { contato } = mapLinha(linha!, indices);
+    expect(contato.name).toBe("BannerLand");
+    expect(contato.phone_number).toBe("+50764950968");
+  });
+
+  it("normaliza telefones com separador ':::' e linhas fixas do Panamá (7 dígitos)", () => {
+    expect(normalizaTelefone("6602-4078 ::: 321-1123", "507")).toBe("+50766024078");
+    expect(normalizaTelefone("246-0110", "507")).toBe("+5072460110");
+    expect(normalizaTelefone("+507 6926-2177", "507")).toBe("+50769262177");
   });
 });

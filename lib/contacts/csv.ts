@@ -148,7 +148,7 @@ function semBom(texto: string): string {
 export const CSV_MAX_BYTES = 5 * 1024 * 1024;
 
 /** Teto de linhas de dados por importação (protege o round-trip do handler). */
-export const CSV_MAX_DATA_ROWS = 500;
+export const CSV_MAX_DATA_ROWS = 2000;
 
 const DELIMITERS = [",", ";", "\t"] as const;
 
@@ -248,10 +248,98 @@ function detectDelimiter(text: string): string {
  * tela de importação promete a quem a usa nesse idioma.
  */
 const HEADER_ALIASES: Record<string, readonly string[]> = {
-  name: ["name", "nome", "cliente", "nombre"],
-  display_name: ["display_name", "apelido", "nome_de_exibicao", "apodo", "nombre_para_mostrar"],
-  email: ["email", "e_mail", "correo", "correo_electronico"],
-  phone_number: ["phone_number", "telefone", "whatsapp", "celular", "fone", "telefono", "movil"],
+  name: [
+    "name",
+    "nome",
+    "cliente",
+    "nombre",
+    "full_name",
+    "fullname",
+    "contact_name",
+    "contacto",
+  ],
+  first_name: [
+    "first_name",
+    "primer_nombre",
+    "primeiro_nome",
+    "given_name",
+    "prenome",
+  ],
+  middle_name: [
+    "middle_name",
+    "segundo_nombre",
+    "nome_do_meio",
+  ],
+  last_name: [
+    "last_name",
+    "apellidos",
+    "apellido",
+    "sobrenome",
+    "family_name",
+  ],
+  organization_name: [
+    "organization_name",
+    "organization",
+    "empresa",
+    "organizacion",
+    "company",
+    "organization_title",
+  ],
+  display_name: [
+    "display_name",
+    "apelido",
+    "nome_de_exibicao",
+    "apodo",
+    "nombre_para_mostrar",
+    "nickname",
+  ],
+  email: [
+    "email",
+    "e_mail",
+    "correo",
+    "correo_electronico",
+    "e_mail_1_value",
+    "email_1_value",
+    "email_value",
+    "email_1",
+    "e_mail_1",
+    "email_address",
+  ],
+  email_2: [
+    "e_mail_2_value",
+    "email_2_value",
+    "email_2",
+    "correo_2_valor",
+    "e_mail_3_value",
+    "email_3_value",
+  ],
+  phone_number: [
+    "phone_number",
+    "telefone",
+    "whatsapp",
+    "celular",
+    "fone",
+    "telefono",
+    "movil",
+    "phone_1_value",
+    "phone_value",
+    "phone",
+    "mobile_phone",
+    "phone_1",
+    "telefono_1_valor",
+    "celular_1_valor",
+    "primary_phone",
+  ],
+  phone_number_2: [
+    "phone_2_value",
+    "phone_2",
+    "phone_3_value",
+    "phone_3",
+    "telefono_2_valor",
+    "celular_2_valor",
+    "work_phone",
+    "home_phone",
+  ],
   cpf: ["cpf"],
   birthdate: [
     "birthdate",
@@ -261,8 +349,9 @@ const HEADER_ALIASES: Record<string, readonly string[]> = {
     "nacimiento",
     "fecha_de_nacimiento",
     "cumpleanos",
+    "birthday",
   ],
-  tags: ["tags", "etiquetas", "grupos"],
+  tags: ["tags", "etiquetas", "grupos", "labels"],
 };
 
 function normalizaHeader(h: string): string {
@@ -307,7 +396,11 @@ export function mapHeader(
       }
     }
   });
-  const temIdentificador = indices.phone_number !== undefined || indices.email !== undefined;
+  const temIdentificador =
+    indices.phone_number !== undefined ||
+    indices.phone_number_2 !== undefined ||
+    indices.email !== undefined ||
+    indices.email_2 !== undefined;
   return {
     indices,
     motivo: temIdentificador ? null : _t("cabeçalho sem coluna de telefone nem e-mail"),
@@ -345,8 +438,71 @@ export interface LinhaNormalizada {
  * Decisão do dono do produto, 2026-08-24: o público é brasileiro, então assumir
  * `+55` é a leitura certa de uma planilha sem DDI — e é o que a ingestão já fazia.
  */
-export function normalizaTelefone(raw: string): string | null {
-  return normalizePhoneBR(raw);
+export function normalizaTelefone(raw: string, defaultCountryDdi?: string): string | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+
+  // Google Contacts e planilhas podem conter múltiplos telefones separados por ':::'
+  const parts = raw.split(":::").map((p) => p.trim()).filter(Boolean);
+  for (const part of parts) {
+    const digits = part.replace(/\D/g, "");
+    if (!digits) continue;
+
+    // Formato E.164 explícito com '+'
+    if (part.startsWith("+")) {
+      if (digits.length >= 8 && digits.length <= 15) {
+        if (digits.startsWith("55")) {
+          return normalizePhoneBR(`+${digits}`);
+        }
+        return `+${digits}`;
+      }
+      continue;
+    }
+
+    // Prefixo 507 explícito (Panamá) sem '+'
+    if (digits.startsWith("507") && (digits.length === 10 || digits.length === 11)) {
+      return `+${digits}`;
+    }
+
+    // Prefixo 55 explícito (Brasil) sem '+'
+    if (digits.startsWith("55") && (digits.length === 12 || digits.length === 13)) {
+      return normalizePhoneBR(`+${digits}`);
+    }
+
+    // Números locais do Panamá (8 dígitos móvel ex: 6470-7041, 7 dígitos fixo ex: 246-0110)
+    if (digits.length === 7 || digits.length === 8) {
+      const ddi = defaultCountryDdi && defaultCountryDdi !== "55" ? defaultCountryDdi : "507";
+      return `+${ddi}${digits}`;
+    }
+
+    // Números de 10 dígitos (EUA, Brasil fixo, etc.)
+    if (digits.length === 10) {
+      if (defaultCountryDdi === "55") {
+        return normalizePhoneBR(digits);
+      }
+      if (/^(954|305|754|786|800|888)\d{7}$/.test(digits)) {
+        return `+1${digits}`;
+      }
+      return normalizePhoneBR(digits) ?? `+${defaultCountryDdi ?? "507"}${digits}`;
+    }
+
+    // Números de 11 dígitos (EUA com 1, Brasil celular, etc.)
+    if (digits.length === 11) {
+      if (digits.startsWith("1")) {
+        return `+${digits}`;
+      }
+      if (defaultCountryDdi === "55") {
+        return normalizePhoneBR(digits);
+      }
+      return normalizePhoneBR(digits) ?? `+${defaultCountryDdi ?? "507"}${digits}`;
+    }
+
+    // Qualquer outro número de 8 a 15 dígitos internacional
+    if (digits.length >= 8 && digits.length <= 15) {
+      return `+${digits}`;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -393,6 +549,7 @@ export function mapLinha(
   const _t = t || ((x) => x);
   const doc = documento ?? perfilDoPais(null).documento;
   const exemploDeTelefone = telefoneExemplo ?? perfilDoPais(null).telefoneExemplo;
+  const ddiPadrao = /^\+(\d{1,4})/.exec(exemploDeTelefone)?.[1] ?? "507";
   const get = (campo: string): string => {
     const idx = indices[campo];
     return idx === undefined ? "" : (cells[idx] ?? "").trim();
@@ -400,23 +557,62 @@ export function mapLinha(
 
   const contato: LinhaNormalizada = {};
 
-  const name = get("name");
+  // Nome do contato: se não houver coluna única, combina First Name + Middle Name + Last Name,
+  // ou recorre a Organization Name para empresas/proveedores.
+  let name = get("name");
+  if (!name) {
+    const firstName = get("first_name");
+    const middleName = get("middle_name");
+    const lastName = get("last_name");
+    const parts = [firstName, middleName, lastName].filter(Boolean);
+    if (parts.length > 0) {
+      name = parts.join(" ");
+    } else {
+      const org = get("organization_name");
+      if (org) name = org;
+    }
+  }
   if (name !== "") contato.name = name.slice(0, 200);
-  const displayName = get("display_name");
+
+  let displayName = get("display_name");
+  if (!displayName) {
+    const org = get("organization_name");
+    if (org && org !== name) {
+      displayName = org;
+    }
+  }
   if (displayName !== "") contato.display_name = displayName.slice(0, 200);
 
-  const email = get("email");
-  if (email !== "") {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { contato: {}, motivo: _t("e-mail inválido: ") + `"${email}"` };
+  // Email: tenta primário, e se for inválido/vazio tenta secundário
+  let email = get("email");
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const email2 = get("email_2");
+    if (email2 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email2)) {
+      email = email2;
+    } else {
+      email = "";
     }
+  }
+  if (email !== "") {
     contato.email = email;
   }
 
-  const phoneRaw = get("phone_number");
-  if (phoneRaw !== "") {
-    const phone = normalizaTelefone(phoneRaw);
-    if (phone === null) {
+  // Telefone: tenta primário, e se não for válido tenta secundário
+  let phoneRaw = get("phone_number");
+  let phone = phoneRaw ? normalizaTelefone(phoneRaw, ddiPadrao) : null;
+  if (!phone && indices.phone_number_2 !== undefined) {
+    const phoneRaw2 = get("phone_number_2");
+    if (phoneRaw2) {
+      phone = normalizaTelefone(phoneRaw2, ddiPadrao);
+      if (phone) phoneRaw = phoneRaw2;
+    }
+  }
+  if (phone) {
+    contato.phone_number = phone;
+  }
+
+  if (contato.phone_number === undefined && contato.email === undefined) {
+    if (phoneRaw) {
       return {
         contato: {},
         motivo:
@@ -426,18 +622,9 @@ export function mapLinha(
           `${exemploDeTelefone})`,
       };
     }
-    contato.phone_number = phone;
-  }
-
-  if (contato.phone_number === undefined && contato.email === undefined) {
     return { contato: {}, motivo: _t("linha sem telefone nem e-mail") };
   }
 
-  // O documento é normalizado pelo PERFIL do país, e não por `replace(/\D/g,"")`:
-  // no Brasil a regra é manter os 11 dígitos (o mod-11 confere depois), mas o
-  // documento de outro país pode ter LETRA no meio — o `\D` apagava a letra e
-  // gravava um valor que não é o documento de ninguém (medido na issue #1033:
-  // `003862011LA042` virava `003862011042`). O perfil sabe o que preservar.
   const cpf = doc.normaliza(get("cpf"));
   if (cpf !== "") contato.cpf = cpf;
 
@@ -455,9 +642,11 @@ export function mapLinha(
 
   const tagsRaw = get("tags");
   if (tagsRaw !== "") {
-    // Caixa baixa e sem repetição pela MESMA regra da ficha e da API, para o
-    // filtro casar; o teto de 20 marcadores segue aqui (issue #1224).
-    const tags = normalizarTags(tagsRaw.split(/[;|]/)).slice(0, 20);
+    const splitTags = tagsRaw
+      .split(/[,;|]|:::/)
+      .map((t) => t.replace(/^\*+/, "").trim())
+      .filter((t) => t.length > 0 && t.toLowerCase() !== "mycontacts");
+    const tags = normalizarTags(splitTags).slice(0, 20);
     if (tags.length > 0) contato.tags = tags;
   }
 

@@ -495,9 +495,67 @@ const PERFIL_PT: PerfilDoPais = {
  * Exportado mutável de propósito: os testes de tabela registram um país
  * sintético para provar o mecanismo sem publicar citação não revisada.
  */
+const DOCUMENTO_PA: DocumentoDoTitular = {
+  rotulo: "Cédula / RUC",
+  exemplo: "8-123-456",
+  regra: "formato de cédula panameña o RUC",
+  mensagemInvalido: "Cédula o RUC inválido",
+  confereDigito: false,
+  apelidosDoCabecalho: ["cedula", "cip", "ruc", "documento", "identificacion"],
+  valida: (valor) => valor.trim().length >= 3,
+  normaliza: (valor) => valor.trim(),
+};
+
+const PERFIL_PA: PerfilDoPais = {
+  codigo: "PA",
+  nome: "Panamá",
+  documento: DOCUMENTO_PA,
+  empresa: {
+    rotuloNomeLegal: "Razón social",
+    rotuloNumero: "RUC",
+  },
+  telefoneExemplo: "+50761234567",
+  idioma: "es",
+  fusoDoSugerido: "America/Panama",
+  lei: {
+    nome: "Ley 81",
+    numero: "Ley 81 de 2019",
+    artigo: "Art. 15",
+    revisada: true,
+    revisadaPorIa: true,
+    rotuloNoDocumento: "Derecho ejercido",
+  },
+  papel: {
+    controlador: "Responsable del tratamiento",
+    encarregado: "Oficial de Protección de Datos",
+  },
+  autoridadeDeSupervisao: {
+    nome: "ANTAI (Autoridad Nacional de Transparencia y Acceso a la Información)",
+    site: "https://www.antai.gob.pa",
+  },
+  calendario: {
+    feriados: [],
+    rotulo: "feriados nacionales de Panamá",
+  },
+  padroesDePii: [],
+};
+
+/**
+ * O registro de países conhecidos.
+ *
+ * ⚠️ Conhecer ≠ oferecer. A lista que o operador escolhe é
+ * `paisesOferecidos()`, e ela exige `lei.revisada`. Entram aqui, à medida do
+ * trabalho de cada país: documento (forma, e checksum só quando é público),
+ * lei com citação revisada, calendário de feriados e padrões de PII. País
+ * incompleto mora aqui com o que já tem — nunca meio perfil publicado.
+ *
+ * Exportado mutável de propósito: os testes de tabela registram um país
+ * sintético para provar o mecanismo sem publicar citação não revisada.
+ */
 export const PERFIS_DO_PAIS: Record<CodigoDePais, PerfilDoPais> = {
   BR: PERFIL_BR,
   PT: PERFIL_PT,
+  PA: PERFIL_PA,
 };
 
 /** O perfil de um código; vazio ou desconhecido degrada para o Brasil. */
@@ -538,11 +596,15 @@ export async function perfilDaOrganizacao(
 ): Promise<PerfilDoPais> {
   const { data, error } = await supabase
     .from("organizations")
-    .select("country")
+    .select("country, timezone")
     .eq("id", orgId)
     .maybeSingle();
 
-  const declarado = (data as { country?: string | null } | null)?.country ?? null;
+  const orgRow = data as { country?: string | null; timezone?: string | null } | null;
+  let declarado = orgRow?.country ?? null;
+  if ((!declarado || declarado === "BR") && orgRow?.timezone === "America/Panama") {
+    declarado = "PA";
+  }
   const perfil = perfilDoPais(declarado);
 
   const chave = (declarado ?? "").trim().toUpperCase();
