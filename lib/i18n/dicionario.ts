@@ -8906,6 +8906,8 @@ export const DICIONARIO: Traducoes = {
   "Erro ao carregar contatos.": { es: "Error al cargar los contactos." },
   "contato": { es: "contacto" },
   "contatos": { es: "contactos" },
+  "Contato": { es: "Contacto" },
+  "Contatos": { es: "Contactos" },
   "carregados — há mais resultados": { es: "cargados — hay más resultados" },
   "Contato já estava anonimizado.": { es: "El contacto ya estaba anonimizado." },
   "Contato já estava anonimizado, e não faltava nada.": {
