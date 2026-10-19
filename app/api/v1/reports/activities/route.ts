@@ -30,6 +30,7 @@ import { z } from "zod";
 import { fail, ok } from "@/lib/api/wrappers";
 import { isServiceRoleConfigured } from "@/lib/audit";
 import { requireRole } from "@/lib/auth/require-role";
+import { traduzir } from "@/lib/i18n/dicionario";
 import type { PipelineVocabulary } from "@/lib/kanban/types";
 import {
   fusoValido,
@@ -128,6 +129,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const relatorio = montarRelatorio(bruto, {
     nomes,
     vocabulary: (funil?.vocabulary ?? null) as PipelineVocabulary | null,
+    t: (texto: string) => traduzir(texto, authz.user.idioma),
   });
 
   return ok(

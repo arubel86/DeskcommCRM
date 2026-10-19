@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useT } from "@/hooks/i18n/useT";
+import { useIdioma } from "@/lib/i18n/IdiomaProvider";
 import { useActivityReport } from "@/hooks/reports/useActivityReport";
 import type {
   LinhaDeAtividade,
@@ -85,6 +86,7 @@ function SerieDiaria({ dias }: { dias: LinhaDoDia[] }) {
 
 export function ActivityReportClient() {
   const t = useT();
+  const idioma = useIdioma();
   const [dias, setDias] = useState<number>(7);
   const { data, isLoading, isError } = useActivityReport(dias);
 
@@ -206,7 +208,7 @@ export function ActivityReportClient() {
                 {tipos.map((tp: LinhaDeTipo) => (
                   <LinhaComBarra
                     key={tp.type}
-                    nome={tp.rotulo}
+                    nome={t(tp.rotulo)}
                     quantidade={tp.quantidade}
                     fatia={tp.fatia}
                   />
@@ -227,11 +229,11 @@ export function ActivityReportClient() {
                     className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-md border border-border p-2 text-sm"
                   >
                     <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
-                      {quandoLegivel(i.quando, "pt-BR")}
+                      {quandoLegivel(i.quando, idioma)}
                     </span>
                     <MarcadorDeAtor forma={i.atorForma} />
-                    <span className="font-medium">{i.rotulo}</span>
-                    <span className="text-xs text-muted-foreground">{i.atorNome}</span>
+                    <span className="font-medium">{t(i.rotulo)}</span>
+                    <span className="text-xs text-muted-foreground">{t(i.atorNome)}</span>
                     {/* O "e daí" da linha: daqui se chega ao negócio. Um
                         relatório que só lista é decorativo. */}
                     {i.negocioId && (
