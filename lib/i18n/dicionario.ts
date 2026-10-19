@@ -10546,6 +10546,9 @@ export const DICIONARIO: Traducoes = {
     es: "Esta acción no se puede deshacer: el contacto ya fue anonimizado.",
   },
   "Erro interno. Tente de novo em instantes.": { es: "Error interno. Intenta de nuevo en unos momentos." },
+  "Uma tarefa automática parou de tentar": { es: "Una tarea automática dejó de reintentar" },
+  "A IA deixou de responder uma mensagem de cliente": { es: "La IA dejó de responder un mensaje de cliente" },
+  "Uma mensagem de WhatsApp não entrou no CRM": { es: "Un mensaje de WhatsApp no ingresó al CRM" },
 
   // ─── Segment error boundary genérico ───
   "Algo deu errado": { es: "Algo salió mal" },

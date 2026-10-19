@@ -149,6 +149,54 @@ function traduzirAviso(texto: string, t: (s: string) => string): string {
       .replace("Número novo aguardando liberação (go-live)", "Número nuevo en espera de habilitación (go-live)")
       .replace("Os disparos que o sistema começa — follow-up e cadência de prospecção — nascem em espera por segurança: a fila retém, nada é perdido. RESPONDER quem te escreveu continua funcionando normalmente. Resolva este item quando o número estiver pronto para disparar.", "Los envíos que inicia el sistema — follow-up y cadencia de prospección — nacen en espera por seguridad: la cola retiene, nada se pierde. RESPONDER a quien te escribió sigue funcionando normalmente. Resuelve este aviso cuando el número esté listo para disparar.");
   }
+  if (texto === "Uma tarefa automática parou de tentar") {
+    return "Una tarea automática dejó de reintentar";
+  }
+  if (texto === "A IA deixou de responder uma mensagem de cliente") {
+    return "La IA dejó de responder un mensaje de cliente";
+  }
+  if (texto === "Uma mensagem de WhatsApp não entrou no CRM") {
+    return "Un mensaje de WhatsApp no ingresó al CRM";
+  }
+  if (texto.includes("Uma tarefa automática do sistema falhou e parou de tentar")) {
+    return texto
+      .replace(
+        "Uma tarefa automática do sistema falhou e parou de tentar: o que ela ia fazer não aconteceu, e não será tentado de novo.",
+        "Una tarea automática del sistema falló y dejó de reintentar: lo que iba a hacer no sucedió y no se volverá a intentar.",
+      )
+      .replace(
+        "Enquanto este aviso estiver aberto, outras tarefas automáticas que pararem de tentar não abrem aviso novo (a IA que deixa de responder um cliente abre o seu próprio): depois de corrigida a causa, marque-o como resolvido para voltar a ser avisado.",
+        "Mientras este aviso esté abierto, otras tareas automáticas que fallen no abrirán un aviso nuevo (la IA que deja de responder a un cliente abre el suyo propio): después de corregir la causa, márcalo como resuelto para volver a recibir avisos.",
+      )
+      .replace("Detalhe técnico, para quem der suporte:", "Detalle técnico, para soporte:")
+      .replace(/(\d+)\s+tentativas; motivo:/, "$1 intentos; motivo:");
+  }
+  if (texto.includes("Um cliente escreveu e a IA não respondeu")) {
+    return texto
+      .replace(
+        "Um cliente escreveu e a IA não respondeu; se ele não escrever de novo, a conversa fica sem resposta. Abra o Inbox e responda as conversas que estão esperando.",
+        "Un cliente escribió y la IA no respondió; si no vuelve a escribir, la conversación quedará sin respuesta. Abre el Inbox y responde las conversaciones pendientes.",
+      )
+      .replace(
+        "Enquanto este aviso estiver aberto, outras respostas da IA que pararem de tentar não abrem aviso novo: depois de corrigida a causa, marque-o como resolvido para voltar a ser avisado.",
+        "Mientras este aviso esté abierto, otras respuestas de la IA que fallen no abrirán un aviso nuevo: después de corregir la causa, márcalo como resuelto para volver a recibir avisos.",
+      )
+      .replace("Detalhe técnico, para quem der suporte:", "Detalle técnico, para soporte:")
+      .replace(/(\d+)\s+tentativas; motivo:/, "$1 intentos; motivo:");
+  }
+  if (texto.includes("Um cliente mandou mensagem, mas o banco de dados estava indisponível")) {
+    return texto
+      .replace(
+        "Um cliente mandou mensagem, mas o banco de dados estava indisponível e ela não pôde ser gravada, mesmo depois de várias tentativas. Ela não aparece no Inbox e a IA não a respondeu: confira no celular do número as conversas recebidas nesse horário e responda por lá.",
+        "Un cliente envió un mensaje, pero la base de datos no estaba disponible y no se pudo registrar tras varios intentos. No aparece en el Inbox y la IA no le respondió: revisa en el teléfono del número las conversaciones recibidas en ese horario y responde desde allí.",
+      )
+      .replace(
+        "Enquanto este aviso estiver aberto, outras mensagens que também não entrarem não abrem aviso novo: depois de conferir, marque-o como resolvido para voltar a ser avisado.",
+        "Mientras este aviso esté abierto, otros mensajes que tampoco ingresen no abrirán un aviso nuevo: tras verificar, márcalo como resuelto para volver a recibir avisos.",
+      )
+      .replace("Detalhe técnico, para quem der suporte:", "Detalle técnico, para soporte:")
+      .replace(/(\d+)\s+tentativas; motivo:/, "$1 intentos; motivo:");
+  }
 
   return texto;
 }
