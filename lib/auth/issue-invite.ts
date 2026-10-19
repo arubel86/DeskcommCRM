@@ -11,6 +11,7 @@ import { signInviteToken, INVITE_TTL_SECONDS } from "@/lib/auth/invite-token";
 import { buildInviteEmail } from "@/lib/email/templates/invite";
 import { sendEmail, type EmailDeliveryError, type TransporteDeEmail } from "@/lib/email/roteador";
 import { marcaDaSaida } from "@/lib/branding/saida";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /** Link sempre existe, inclusive quando a instalação não configurou e-mail. */
 export async function issueInvite(input: {
@@ -62,6 +63,21 @@ export async function issueInvite(input: {
   // Falhas de infraestrutura não desfazem a organização já criada nem o link.
   if (input.dispatch !== false) {
     try {
+      let idioma: string | undefined;
+      let timeZone: string | undefined;
+      try {
+        const admin = createAdminClient();
+        const { data: org } = await admin
+          .from("organizations")
+          .select("locale, timezone")
+          .eq("id", input.organizationId)
+          .maybeSingle();
+        if (org?.locale) idioma = org.locale;
+        if (org?.timezone) timeZone = org.timezone;
+      } catch {
+        /* fallback silencioso */
+      }
+
       const marca = await marcaDaSaida(input.organizationId);
       const message = buildInviteEmail({
         inviterName: input.inviterName,
@@ -70,6 +86,8 @@ export async function issueInvite(input: {
         role: input.role,
         expiresAt: new Date(exp * 1000),
         marca,
+        idioma,
+        timeZone,
       });
       const result = await sendEmail({
         to: email,

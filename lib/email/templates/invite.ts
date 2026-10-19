@@ -25,18 +25,106 @@ export interface InviteEmailOptions {
   expiresAt: Date;
   /** A marca de quem convidou. Obrigatória — sem ela o e-mail não tem dono. */
   marca: MarcaDeSaida;
+  idioma?: string;
+  timeZone?: string;
 }
+
+const PAPEIS_TRADUCAO: Record<string, Record<string, string>> = {
+  es: {
+    admin: "administrador",
+    manager: "gerente",
+    agent: "agente",
+    viewer: "visualizador",
+  },
+  "pt-BR": {
+    admin: "administrador",
+    manager: "gerente",
+    agent: "agente",
+    viewer: "visualizador",
+  },
+  en: {
+    admin: "admin",
+    manager: "manager",
+    agent: "agent",
+    viewer: "viewer",
+  },
+};
 
 export function buildInviteEmail(opts: InviteEmailOptions): {
   subject: string;
   html: string;
   text: string;
 } {
-  const expiresStr = opts.expiresAt.toLocaleString("pt-BR", {
-    timeZone: "America/Sao_Paulo",
+  const idioma = opts.idioma ?? "es";
+  const tz = opts.timeZone ?? (idioma === "pt-BR" ? "America/Sao_Paulo" : "America/Panama");
+  const locale = idioma === "pt-BR" ? "pt-BR" : idioma === "en" ? "en-US" : "es";
+
+  const expiresStr = opts.expiresAt.toLocaleString(locale, {
+    timeZone: tz,
   });
   const marca = opts.marca.nome;
-  const subject = `${opts.inviterName} convidou você para a ${opts.orgName} no ${marca}`;
+  const papel = PAPEIS_TRADUCAO[idioma]?.[opts.role] ?? opts.role;
+
+  let subject: string;
+  let titulo: string;
+  let corpo: string;
+  let botao: string;
+  let copiarLink: string;
+  let expiraEm: string;
+  let textoPlano: string[];
+
+  const mesmoNome = opts.orgName.trim().toLowerCase() === marca.trim().toLowerCase();
+
+  if (idioma === "pt-BR") {
+    subject = mesmoNome
+      ? `${opts.inviterName} convidou você para a ${opts.orgName}`
+      : `${opts.inviterName} convidou você para a ${opts.orgName} no ${marca}`;
+    titulo = `Você foi convidado para a ${escapeHtml(opts.orgName)}`;
+    corpo = `${escapeHtml(opts.inviterName)} convidou você como <strong>${escapeHtml(papel)}</strong> no ${escapeHtml(marca)}.`;
+    botao = "Aceitar convite";
+    copiarLink = "Ou copie e cole este link no navegador:";
+    expiraEm = `Este link expira em <strong>${expiresStr}</strong>. Se você não esperava este convite, pode ignorá-lo.`;
+    textoPlano = [
+      `Você foi convidado para a ${opts.orgName} como ${papel} no ${marca}.`,
+      "",
+      `Aceitar: ${opts.acceptUrl}`,
+      "",
+      `Expira em ${expiresStr}.`,
+    ];
+  } else if (idioma === "en") {
+    subject = mesmoNome
+      ? `${opts.inviterName} invited you to ${opts.orgName}`
+      : `${opts.inviterName} invited you to ${opts.orgName} on ${marca}`;
+    titulo = `You have been invited to ${escapeHtml(opts.orgName)}`;
+    corpo = `${escapeHtml(opts.inviterName)} invited you as <strong>${escapeHtml(papel)}</strong> on ${escapeHtml(marca)}.`;
+    botao = "Accept invite";
+    copiarLink = "Or copy and paste this link into your browser:";
+    expiraEm = `This link expires on <strong>${expiresStr}</strong>. If you were not expecting this invite, you can ignore it.`;
+    textoPlano = [
+      `You have been invited to ${opts.orgName} as ${papel} on ${marca}.`,
+      "",
+      `Accept: ${opts.acceptUrl}`,
+      "",
+      `Expires on ${expiresStr}.`,
+    ];
+  } else {
+    // Español (default)
+    subject = mesmoNome
+      ? `${opts.inviterName} te ha invitado a ${opts.orgName}`
+      : `${opts.inviterName} te ha invitado a ${opts.orgName} en ${marca}`;
+    titulo = `Has sido invitado a ${escapeHtml(opts.orgName)}`;
+    corpo = `${escapeHtml(opts.inviterName)} te invitó como <strong>${escapeHtml(papel)}</strong> en ${escapeHtml(marca)}.`;
+    botao = "Aceptar invitación";
+    copiarLink = "O copia y pega este enlace en el navegador:";
+    expiraEm = `Este enlace expira el <strong>${expiresStr}</strong>. Si no esperabas esta invitación, puedes ignorarla.`;
+    textoPlano = [
+      `Has sido invitado a ${opts.orgName} como ${papel} en ${marca}.`,
+      "",
+      `Aceptar invitación: ${opts.acceptUrl}`,
+      "",
+      `Expira el ${expiresStr}.`,
+    ];
+  }
 
   /**
    * O logo de quem convidou, quando há um.
@@ -60,40 +148,33 @@ export function buildInviteEmail(opts: InviteEmailOptions): {
     : "";
 
   const html = `<!doctype html>
-<html lang="pt-BR">
+<html lang="${idioma}">
 <body style="margin:0;padding:0;background:${NEUTROS_DE_SAIDA.fundo};font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${NEUTROS_DE_SAIDA.texto}">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px">
     ${logo}
     <h1 style="font-size:22px;line-height:1.3;margin:0 0 16px;color:${NEUTROS_DE_SAIDA.texto}">
-      Você foi convidado para a ${escapeHtml(opts.orgName)}
+      ${titulo}
     </h1>
     <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
-      ${escapeHtml(opts.inviterName)} convidou você como
-      <strong>${escapeHtml(opts.role)}</strong> no ${escapeHtml(marca)}.
+      ${corpo}
     </p>
     <p style="margin:24px 0">
       <a href="${opts.acceptUrl}" style="display:inline-block;padding:12px 24px;background:${opts.marca.accent};color:${opts.marca.accentFg};border-radius:6px;text-decoration:none;font-weight:600">
-        Aceitar convite
+        ${botao}
       </a>
     </p>
     <p style="margin:0 0 8px;font-size:13px;color:${NEUTROS_DE_SAIDA.suave}">
-      Ou copie e cole este link no navegador:<br>
+      ${copiarLink}<br>
       <span style="word-break:break-all;color:${opts.marca.accent}">${opts.acceptUrl}</span>
     </p>
     <p style="margin:24px 0 0;font-size:13px;color:${NEUTROS_DE_SAIDA.suave}">
-      Este link expira em <strong>${expiresStr}</strong>. Se você não esperava este convite, pode ignorá-lo.
+      ${expiraEm}
     </p>
   </div>
 </body>
 </html>`;
 
-  const text = [
-    `Você foi convidado para a ${opts.orgName} como ${opts.role} no ${marca}.`,
-    "",
-    `Aceitar: ${opts.acceptUrl}`,
-    "",
-    `Expira em ${expiresStr}.`,
-  ].join("\n");
+  const text = textoPlano.join("\n");
 
   return { subject, html, text };
 }
