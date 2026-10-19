@@ -7,7 +7,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { normalizarIdioma } from "@/lib/i18n/idiomas";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const metadata = { title: "Extensões da instalação" };
+export const metadata = { title: "Extensiones de la instalación" };
 export const dynamic = "force-dynamic";
 
 /**

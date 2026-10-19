@@ -20,7 +20,7 @@ import { PlanosDaInstalacao, type PlanoDaTela } from "./_planos";
 import { ReguaDaCobranca } from "./_regua";
 import { FaixaDoModoDeTeste, VisaoGeral } from "./_visao-geral";
 
-export const metadata = { title: "Cobrança — Admin Plataforma" };
+export const metadata = { title: "Facturación — Admin Plataforma" };
 export const dynamic = "force-dynamic";
 
 interface ClienteDaTela {

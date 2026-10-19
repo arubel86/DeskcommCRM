@@ -1,6 +1,6 @@
 import { UserDetailClient } from "./_client";
 
-export const metadata = { title: "Detalhe de Usuário — Admin Plataforma" };
+export const metadata = { title: "Detalle de usuario — Admin Plataforma" };
 
 export default async function AdminUserDetailPage({
   params,

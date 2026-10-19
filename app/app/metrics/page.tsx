@@ -6,7 +6,7 @@ import { ROLE_RANK } from "@/lib/auth/types";
 import { MetricsClient } from "./_components/MetricsClient";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Desempenho" };
+export const metadata: Metadata = { title: "Rendimiento" };
 
 export default async function MetricsPage() {
   const user = await requireAuth();

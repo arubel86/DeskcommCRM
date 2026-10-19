@@ -32,7 +32,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { AvisoNoWhatsApp } from "./_components/AvisoNoWhatsApp";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Aviso no WhatsApp" };
+export const metadata: Metadata = { title: "Aviso en WhatsApp" };
 
 export default async function AvisoDeCasoPage() {
   const user = await requireAuth();

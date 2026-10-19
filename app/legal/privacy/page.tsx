@@ -8,7 +8,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Política de Privacidade" };
+export const metadata: Metadata = { title: "Política de privacidad" };
 
 export default async function PrivacyPage() {
   const op = await resolverOperador();

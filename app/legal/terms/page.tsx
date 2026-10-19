@@ -7,7 +7,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = { title: "Termos de Uso" };
+export const metadata: Metadata = { title: "Términos de uso" };
 
 export default async function TermsPage() {
   const op = await resolverOperador();

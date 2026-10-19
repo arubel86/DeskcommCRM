@@ -9,7 +9,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { FormularioDeCadastro } from "./_form";
 import { PedidosPendentes } from "./_pedidos";
 
-export const metadata = { title: "Cadastro na instalação" };
+export const metadata = { title: "Registro en la instalación" };
 export const dynamic = "force-dynamic";
 
 /**

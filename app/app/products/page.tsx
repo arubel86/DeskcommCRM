@@ -21,7 +21,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ProdutosClient } from "./_client";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Produtos" };
+export const metadata: Metadata = { title: "Productos" };
 
 /**
  * O CATÁLOGO DA LOJA — onde o preço que a IA responde é cadastrado.

@@ -12,7 +12,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 
 import { PainelDeConfiguracao } from "./_form";
 
-export const metadata = { title: "Configuração da instalação" };
+export const metadata = { title: "Configuración de la instalación" };
 export const dynamic = "force-dynamic";
 
 /**

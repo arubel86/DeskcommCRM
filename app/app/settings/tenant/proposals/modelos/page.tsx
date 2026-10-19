@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 import { ModelosDeProposta } from "./_client";
 
-export const metadata = { title: "Modelos de proposta" };
+export const metadata = { title: "Modelos de propuesta" };
 
 export default async function ModelosDePropostaPage() {
   const user = await requireAuth();

@@ -5,7 +5,7 @@ import { ExtensionGuide } from "@/components/extensions/ExtensionGuide";
 import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Guia da extensão" };
+export const metadata: Metadata = { title: "Guía de la extensión" };
 
 export default async function ExtensionGuidePage({
   params,

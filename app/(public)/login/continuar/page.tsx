@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { idiomaDoVisitante } from "@/lib/i18n/idiomaAnonimo";
 import { traduzir } from "@/lib/i18n/dicionario";
 
-export const metadata = { title: "Confirmar acesso" };
+export const metadata = { title: "Confirmar acceso" };
 
 /**
  * Parada dos links de e-mail (recuperação, convite, confirmação de cadastro).

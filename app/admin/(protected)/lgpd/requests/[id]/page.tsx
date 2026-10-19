@@ -1,7 +1,7 @@
 import { LgpdRequestAdminDetail } from "./_client";
 
 export const metadata = {
-  title: "Solicitação LGPD — Admin",
+  title: "Solicitud de privacidad — Admin",
 };
 
 export default async function AdminLgpdRequestPage({

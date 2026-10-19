@@ -6,7 +6,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { normalizarIdioma } from "@/lib/i18n/idiomas";
 import { listarModulos } from "@/lib/modulos/service";
 
-export const metadata = { title: "Módulos da instalação" };
+export const metadata = { title: "Módulos de la instalación" };
 export const dynamic = "force-dynamic";
 
 /**

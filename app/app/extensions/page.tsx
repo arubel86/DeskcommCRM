@@ -5,7 +5,7 @@ import { ExtensionsManager } from "@/components/extensions/ExtensionsManager";
 import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Extensões" };
+export const metadata: Metadata = { title: "Extensiones" };
 
 export default async function ExtensionsPage() {
   const user = await requireAuth();

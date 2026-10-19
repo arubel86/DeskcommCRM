@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 import { FormularioDaMeta } from "./_form";
 
-export const metadata = { title: "API Oficial da Meta da instalação" };
+export const metadata = { title: "API Oficial de Meta de la instalación" };
 export const dynamic = "force-dynamic";
 
 /**

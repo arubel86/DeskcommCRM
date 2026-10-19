@@ -6,7 +6,7 @@ import { ROLE_RANK } from "@/lib/auth/types";
 import { TemplatesClient } from "./_components/TemplatesClient";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Respostas rápidas" };
+export const metadata: Metadata = { title: "Respuestas rápidas" };
 
 export default async function TemplatesPage() {
   const user = await requireAuth();

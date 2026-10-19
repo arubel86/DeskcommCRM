@@ -22,7 +22,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Conta suspensa",
+  title: "Cuenta suspendida",
 };
 
 const PEDIDO = z.uuid();

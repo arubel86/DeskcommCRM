@@ -19,7 +19,7 @@ import { ROLE_RANK } from "@/lib/auth/types";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Dados externos" };
+export const metadata = { title: "Datos externos" };
 export const dynamic = "force-dynamic";
 
 const COLUNAS_SEGURAS =

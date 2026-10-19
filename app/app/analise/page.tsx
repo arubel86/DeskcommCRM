@@ -6,7 +6,7 @@ import { modulosLigados } from "@/lib/instalacao/modulos";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Análise" };
+export const metadata: Metadata = { title: "Análisis" };
 
 /**
  * Hub da Análise.

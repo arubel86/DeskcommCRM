@@ -5,7 +5,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { Relatorios } from "./_components/Relatorios";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Atividades" };
+export const metadata: Metadata = { title: "Actividades" };
 
 /**
  * As duas abas são endereçáveis, como em `/app/team`: quem mandar o link da

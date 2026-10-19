@@ -7,7 +7,7 @@ import { roleAtLeast } from "@/lib/auth/types";
 import { ProposalEditorClient } from "./_client";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Editor de Proposta" };
+export const metadata: Metadata = { title: "Editor de propuesta" };
 
 export default async function ProposalPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth();

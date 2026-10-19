@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { idiomaDoVisitante } from "@/lib/i18n/idiomaAnonimo";
 import { traduzir } from "@/lib/i18n/dicionario";
 
-export const metadata = { title: "Recuperar senha" };
+export const metadata = { title: "Recuperar contraseña" };
 
 export default async function ForgotPasswordPage() {
   const supabase = await createClient();

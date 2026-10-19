@@ -5,7 +5,7 @@ import { MfaForm } from "@/components/auth/MfaForm";
 import { idiomaDoVisitante } from "@/lib/i18n/idiomaAnonimo";
 import { traduzir } from "@/lib/i18n/dicionario";
 
-export const metadata = { title: "Verificação em duas etapas" };
+export const metadata = { title: "Verificación en dos pasos" };
 
 export default async function MfaChallengePage({
   searchParams,

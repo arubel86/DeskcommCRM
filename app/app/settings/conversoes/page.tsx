@@ -79,7 +79,7 @@ import { listarRegrasGoogle } from "@/lib/conversoes/regras-google";
 import { RegrasDeConversaoMeta } from "./_regrasMeta";
 import { listarRegrasMeta, rotuloDoEventoDaMeta } from "@/lib/conversoes/regras-meta";
 
-export const metadata = { title: "Conversões" };
+export const metadata = { title: "Conversiones" };
 export const dynamic = "force-dynamic";
 
 /** O que a volta do OAuth do Google Ads diz, traduzido — ver o callback. */

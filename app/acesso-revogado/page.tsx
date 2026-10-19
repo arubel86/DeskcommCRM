@@ -6,7 +6,7 @@ import { normalizarIdioma } from "@/lib/i18n/idiomas";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { signOut } from "@/app/actions/auth/signOut";
 
-export const metadata = { title: "Acesso revogado" };
+export const metadata = { title: "Acceso revocado" };
 
 /**
  * Tela terminal de quem TINHA acesso e não tem mais.

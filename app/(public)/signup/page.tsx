@@ -12,7 +12,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { lerCadastroNaTela, planoInicialDoSeletor } from "@/lib/cobranca/cadastro";
 
-export const metadata = { title: "Criar conta" };
+export const metadata = { title: "Crear cuenta" };
 
 /**
  * Aceita `?invite=<token>`: é o caminho de quem foi convidado e ainda não tem

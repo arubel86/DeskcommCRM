@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { idiomaDoVisitante } from "@/lib/i18n/idiomaAnonimo";
 import { traduzir } from "@/lib/i18n/dicionario";
 
-export const metadata = { title: "Nova senha" };
+export const metadata = { title: "Nueva contraseña" };
 
 export default async function ResetPasswordPage() {
   const supabase = await createClient();

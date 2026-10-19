@@ -7,7 +7,7 @@ import { ROLE_RANK } from "@/lib/auth/types";
 import { TarefasClient } from "./_components/TarefasClient";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Tarefas" };
+export const metadata: Metadata = { title: "Tareas" };
 
 /**
  * TAREFAS — "ligar de volta na terça", num lugar que não é a memória de ninguém.

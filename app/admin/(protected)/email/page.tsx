@@ -9,7 +9,7 @@ import { normalizarIdioma } from "@/lib/i18n/idiomas";
 
 import { FormularioDeSmtp } from "./_form";
 
-export const metadata = { title: "Servidor de e-mail da instalação" };
+export const metadata = { title: "Servidor de correo de la instalación" };
 export const dynamic = "force-dynamic";
 
 /**

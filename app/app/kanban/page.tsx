@@ -9,7 +9,7 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { FunisClient, type FunilDaLista } from "./_client";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Funis" };
+export const metadata: Metadata = { title: "Embudos" };
 
 /**
  * A lista de funis — e o lugar onde eles se gerenciam.

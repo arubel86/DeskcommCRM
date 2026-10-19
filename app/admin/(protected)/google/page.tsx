@@ -8,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 import { FormularioDoGoogle } from "./_form";
 
-export const metadata = { title: "Google Agenda da instalação" };
+export const metadata = { title: "Google Calendar de la instalación" };
 export const dynamic = "force-dynamic";
 
 /**

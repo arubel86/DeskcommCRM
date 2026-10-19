@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NewProposalClient, type LeadOption } from "./_client";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Nova Proposta" };
+export const metadata: Metadata = { title: "Nueva propuesta" };
 
 export default async function NewProposalPage({
   searchParams,

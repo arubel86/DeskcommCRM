@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { loadAuthUser } from "@/lib/auth/server";
 import { UpdatePanel } from "./_components/UpdatePanel";
 
-export const metadata = { title: "Atualização do sistema" };
+export const metadata = { title: "Actualización del sistema" };
 export const dynamic = "force-dynamic";
 
 /**
