@@ -7655,6 +7655,8 @@
   "A ativação e a permissão serão verificadas novamente antes de abrir Tarefas.": "Activation and permission will be checked again before opening Tasks.",
   "O servidor devolveu um destino que esta extensão não pode abrir.": "The server returned a destination that this extension can't open.",
   "A conexão caiu antes de o servidor confirmar o resultado.": "The connection dropped before the server confirmed the result.",
+  "O servidor demorou muito para responder. Tente novamente em instantes.": "The server took too long to respond. Please try again in a few moments.",
+  "Não foi possível conectar ao servidor. Verifique sua conexão ou tente em instantes.": "Could not connect to the server. Check your connection or try again shortly.",
   "O servidor respondeu em um formato inesperado. Recarregue e tente novamente.": "The server responded in an unexpected format. Reload and try again.",
   "Não foi possível concluir a operação.": "The operation couldn't be completed.",
   "Só o administrador da instalação pode gerenciar os pacotes disponíveis.": "Only the installation administrator can manage the available packages.",

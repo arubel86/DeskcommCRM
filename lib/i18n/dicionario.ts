@@ -13258,6 +13258,8 @@ export const DICIONARIO: Traducoes = {
   "A ativação e a permissão serão verificadas novamente antes de abrir Tarefas.": { es: "La activación y el permiso se comprobarán de nuevo antes de abrir Tareas." },
   "O servidor devolveu um destino que esta extensão não pode abrir.": { es: "El servidor devolvió un destino que esta extensión no puede abrir." },
   "A conexão caiu antes de o servidor confirmar o resultado.": { es: "La conexión se interrumpió antes de que el servidor confirmara el resultado." },
+  "O servidor demorou muito para responder. Tente novamente em instantes.": { es: "El servidor tardó demasiado en responder. Inténtalo de nuevo en unos momentos." },
+  "Não foi possível conectar ao servidor. Verifique sua conexão ou tente em instantes.": { es: "No se pudo conectar con el servidor. Verifica tu conexión o inténtalo en unos momentos." },
   "O servidor respondeu em um formato inesperado. Recarregue e tente novamente.": { es: "El servidor respondió en un formato inesperado. Recarga e inténtalo de nuevo." },
   "Não foi possível concluir a operação.": { es: "No se pudo completar la operación." },
   "Só o administrador da instalação pode gerenciar os pacotes disponíveis.": { es: "Solo el administrador de la instalación puede gestionar los paquetes disponibles." },

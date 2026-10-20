@@ -165,6 +165,26 @@ function toastFor(err: unknown, t: (texto: string) => string): void {
     toast.error(t(err.message) || err.code, { description });
     return;
   }
+
+  // Falha por timeout (servidor ou banco de dados sob alta carga):
+  if (
+    (err instanceof DOMException && err.name === "TimeoutError") ||
+    (err instanceof Error && err.name === "TimeoutError")
+  ) {
+    toast.error(t("O servidor demorou muito para responder. Tente novamente em instantes."));
+    return;
+  }
+
+  // Falha de rede ou servidor inacessível (ex: reiniciando ou queda de conexão):
+  if (
+    err instanceof TypeError &&
+    typeof err.message === "string" &&
+    /failed to fetch|networkerror|load failed/i.test(err.message)
+  ) {
+    toast.error(t("Não foi possível conectar ao servidor. Verifique sua conexão ou tente em instantes."));
+    return;
+  }
+
   toast.error(t("Erro inesperado. Tente novamente."));
 }
 

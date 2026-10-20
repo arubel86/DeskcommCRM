@@ -397,6 +397,14 @@ async function request<T>(
       if (MUTATING_METHODS.has(method)) {
         throw err;
       }
+      // Se estourou timeout na leitura, insistir com novas consultas consecutivas
+      // sobrecarrega ainda mais o banco/servidor que já está lento (retry storm).
+      const isTimeout =
+        (err instanceof DOMException && err.name === "TimeoutError") ||
+        (err instanceof Error && err.name === "TimeoutError");
+      if (isTimeout) {
+        throw err;
+      }
       lastError = err;
       if (attempt < MAX_ATTEMPTS) {
         await sleep(backoffMs(attempt), opts.signal);

@@ -116,4 +116,22 @@ describe("ApiErrorToast", () => {
     expect(toast.error).toHaveBeenCalledTimes(1);
     expect(toast.error).toHaveBeenCalledWith("Erro inesperado. Tente novamente.");
   });
+
+  it("calls toast.error with timeout message for TimeoutError", () => {
+    const timeoutErr = new DOMException("The operation timed out.", "TimeoutError");
+    showApiError(timeoutErr);
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      "O servidor demorou muito para responder. Tente novamente em instantes.",
+    );
+  });
+
+  it("calls toast.error with network message for failed to fetch", () => {
+    const netErr = new TypeError("Failed to fetch");
+    showApiError(netErr);
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      "Não foi possível conectar ao servidor. Verifique sua conexão ou tente em instantes.",
+    );
+  });
 });
