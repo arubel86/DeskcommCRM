@@ -36,6 +36,8 @@ export interface Contact {
   created_at: string;
   updated_at: string;
   last_activity_at: string | null;
+  /** Vendedor dono da carteira deste cliente (#2591). */
+  carteira_user_id?: string | null;
   /**
    * "Cliente desde": a data do primeiro horário que conta — o dia em que se combinou, ou o dia do atendimento quando ele for mais antigo —, nunca uma data futura.
    * É `min(least(created_at, starts_at))` dos agendamentos que contam — as duas

@@ -1,7 +1,10 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { toast } from "sonner";
+
 import { showApiError } from "@/components/feedback/ApiErrorToast";
+import { useT } from "@/hooks/i18n/useT";
 import { apiClient } from "@/lib/api/client";
 import type { CarteiraDaTela } from "@/lib/carteira/tela";
 
@@ -46,6 +49,7 @@ export function useCarteiraDoContato(contactId: string, enabled = true) {
  */
 export function useDefinirCarteira(contactId: string) {
   const qc = useQueryClient();
+  const t = useT();
   return useMutation({
     mutationFn: async (donoUserId: string | null) =>
       apiClient.patch<{ data: { carteira_user_id: string | null } }>(
@@ -54,8 +58,10 @@ export function useDefinirCarteira(contactId: string) {
       ),
     onError: showApiError,
     onSuccess: () => {
+      toast.success(t("Contato atualizado."));
       void qc.invalidateQueries({ queryKey: ["carteira-do-contato", contactId] });
       void qc.invalidateQueries({ queryKey: ["contact", contactId] });
+      void qc.invalidateQueries({ queryKey: ["contacts"] });
     },
   });
 }

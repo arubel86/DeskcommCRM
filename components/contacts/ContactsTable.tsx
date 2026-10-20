@@ -40,6 +40,7 @@ import type { Contact } from "@/lib/types/contacts";
 import { rotuloDoContato } from "@/lib/contacts/rotulo-do-contato";
 import { phoneForDisplay } from "@/lib/channels/phone-variants";
 import { useConversaNovaComEscolhaDeCanal } from "@/components/channels/SeletorDeCanalParaConversa";
+import { useAssignableMembers } from "@/hooks/inbox/useAssignableMembers";
 import { EditContactDialog } from "@/components/contacts/EditContactDialog";
 
 interface Props {
@@ -131,6 +132,7 @@ export function ContactsTable({
   const localeDaData = useLocaleDeData();
   const t = useT();
   const clientesLigado = useActiveOrg()?.cliente_pela_agenda === true;
+  const membros = useAssignableMembers(true);
   const del = useDeleteContact();
   const [alvo, setAlvo] = useState<Contact | null>(null);
   // Issue #2715 — editar pela linha, sem abrir a ficha. Sem customFieldDefs:
@@ -253,6 +255,7 @@ export function ContactsTable({
             orderDir={orderDir}
             onSort={onSort}
           />
+          <TableHead>{t("Responsável")}</TableHead>
           <TableHead>{t("Status")}</TableHead>
           <TableHead className="w-[88px]">
             <span className="sr-only">{t("Ações")}</span>
@@ -301,6 +304,20 @@ export function ContactsTable({
               {c.last_activity_at
                 ? formatUltimaAtividade(c.last_activity_at, localeDaData)
                 : "—"}
+            </TableCell>
+            <TableCell className="text-sm">
+              {(() => {
+                const dono = c.carteira_user_id
+                  ? (membros.data ?? []).find((m) => m.user_id === c.carteira_user_id)
+                  : null;
+                return dono ? (
+                  <span className="font-medium text-foreground">
+                    {dono.full_name ?? dono.user_id.slice(0, 8)}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                );
+              })()}
             </TableCell>
             <TableCell>
               <div className="flex flex-wrap gap-1">
