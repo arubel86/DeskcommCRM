@@ -24,18 +24,13 @@ interface RouteCtx {
 export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
   const requestId = randomUUID();
   const { id: conversationId } = await ctx.params;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: authErr,
-  } = await supabase.auth.getUser();
-  if (authErr || !user) {
+  const authUser = await loadAuthUser();
+  if (!authUser) {
     return fail("unauthenticated", "Auth required.", 401, { requestId });
   }
 
-  const authUser = await loadAuthUser();
-  const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-BR");
+  const supabase = await createClient();
+  const t = (texto: string) => traduzir(texto, authUser.idioma ?? "pt-BR");
   const ativa = await orgAtivaDaApi(authUser, requestId);
   if (!ativa.ok) return ativa.response;
   const activeOrg = ativa.org;
@@ -60,7 +55,7 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
       supabase,
       {
         organization_id: activeOrg.orgId,
-        actor: { type: "user", id: user.id },
+        actor: { type: "user", id: authUser.id },
         requestId,
         idioma: authUser?.idioma,
       },

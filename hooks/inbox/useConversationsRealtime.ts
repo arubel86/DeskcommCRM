@@ -193,9 +193,15 @@ export function useConversationsRealtime(
       if (pageParam) qs.set("cursor", pageParam);
       qs.set("limit", "50");
       try {
-        return await apiClient.get<ListResponse>(`/api/v1/conversations?${qs.toString()}`);
+        return await apiClient.get<ListResponse>(`/api/v1/conversations?${qs.toString()}`, {
+          timeoutMs: 25_000,
+        });
       } catch (err) {
-        showApiError(err);
+        const dadosEmCache = qc.getQueryData<{ pages: ListResponse[] }>(queryKey);
+        const jaTemConversas = (dadosEmCache?.pages?.[0]?.data?.length ?? 0) > 0;
+        if (!jaTemConversas) {
+          showApiError(err);
+        }
         throw err;
       }
     },

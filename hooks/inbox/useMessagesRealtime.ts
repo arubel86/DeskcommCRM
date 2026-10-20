@@ -31,9 +31,14 @@ export function useMessagesRealtime(conversationId: string | null) {
       try {
         return await apiClient.get<MessagesResponse>(
           `/api/v1/conversations/${conversationId}/messages?${qs.toString()}`,
+          { timeoutMs: 25_000 },
         );
       } catch (err) {
-        showApiError(err);
+        const dadosEmCache = qc.getQueryData<{ pages: MessagesResponse[] }>(queryKey);
+        const jaTemMensagens = (dadosEmCache?.pages?.[0]?.data?.length ?? 0) > 0;
+        if (!jaTemMensagens) {
+          showApiError(err);
+        }
         throw err;
       }
     },
