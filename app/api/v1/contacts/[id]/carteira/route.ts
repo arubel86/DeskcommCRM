@@ -23,6 +23,7 @@ import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 import { ok, fail } from "@/lib/api/wrappers";
 import { audit } from "@/lib/audit";
 import { requireRole } from "@/lib/auth/require-role";
@@ -50,13 +51,22 @@ interface Recusa {
 }
 
 /** Mensagens em pt-BR fixas, traduzidas na resposta — nunca em inglês. */
-function recusaDaFuncao(erro: { code?: string; message?: string } | null): Recusa {
-  const bruto = erro?.message ?? "";
+function recusaDaFuncao(
+  erro: { code?: string; message?: string; details?: string; hint?: string } | null,
+): Recusa {
+  const bruto = `${erro?.message ?? ""} ${erro?.details ?? ""} ${erro?.hint ?? ""}`;
   if (bruto.includes("carteira_permissao_negada")) {
     return {
       status: 403,
       code: "carteira_permissao_negada",
       mensagem: "Só gerente e administrador podem mudar a carteira do cliente.",
+    };
+  }
+  if (bruto.includes("carteira_sem_ator")) {
+    return {
+      status: 403,
+      code: "carteira_sem_ator",
+      mensagem: "Usuário sem autorização para definir carteira.",
     };
   }
   if (bruto.includes("carteira_dono_invalido")) {
@@ -67,18 +77,37 @@ function recusaDaFuncao(erro: { code?: string; message?: string } | null): Recus
         "O dono precisa ser membro ativo desta empresa, com papel de atendente, gerente ou administrador. Quem só lê, e quem saiu da equipe, não é dono de carteira.",
     };
   }
-  if (bruto.includes("carteira_contato_nao_encontrado") || bruto.includes("carteira_contato_de_outra")) {
+  if (
+    bruto.includes("carteira_contato_nao_encontrado") ||
+    bruto.includes("carteira_contato_de_outra")
+  ) {
     return {
       status: 404,
       code: "contact_not_found",
       mensagem: "Contato não encontrado nesta empresa.",
     };
   }
-  if (bruto.includes("carteira_origem_invalida") || bruto.includes("carteira_parametro_invalido")) {
+  if (
+    bruto.includes("carteira_origem_invalida") ||
+    bruto.includes("carteira_parametro_invalido")
+  ) {
     return {
       status: 422,
       code: "validation_failed",
       mensagem: "A origem da carteira não é válida.",
+    };
+  }
+  if (
+    bruto.includes("does not exist") ||
+    bruto.includes("schema cache") ||
+    erro?.code === "PGRST202" ||
+    erro?.code === "42883" ||
+    erro?.code === "42703"
+  ) {
+    return {
+      status: 503,
+      code: "carteira_banco_desatualizado",
+      mensagem: "O recurso de carteira requer atualização do banco de dados.",
     };
   }
   return {
@@ -131,8 +160,22 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<Response> {
     p_origem: origem,
   });
   if (error) {
+    logger.error("carteira.patch_failed", {
+      requestId,
+      orgId,
+      contactId,
+      dono,
+      origem,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
     const recusa = recusaDaFuncao(error);
-    return fail(recusa.code, t(recusa.mensagem), recusa.status, { requestId });
+    return fail(recusa.code, t(recusa.mensagem), recusa.status, {
+      requestId,
+      details: recusa.status >= 500 ? { db_error: error.message } : undefined,
+    });
   }
 
   await audit({

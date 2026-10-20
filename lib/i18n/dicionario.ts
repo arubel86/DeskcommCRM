@@ -6059,6 +6059,12 @@ export const DICIONARIO: Traducoes = {
   "Não foi possível salvar a carteira do cliente.": {
     es: "No fue posible guardar la cartera del cliente.",
   },
+  "Usuário sem autorização para definir carteira.": {
+    es: "Usuario sin autorización para definir la cartera.",
+  },
+  "O recurso de carteira requer atualização do banco de dados.": {
+    es: "La función de cartera requiere la actualización de la base de datos.",
+  },
   // TELA da carteira (#2591): o cartão da ficha do contato e a faixa em cima do chat.
   "Carteira": { es: "Cartera" },
   "O vendedor dono deste cliente. Sem dono, o atendimento segue o fluxo de sempre.": {
