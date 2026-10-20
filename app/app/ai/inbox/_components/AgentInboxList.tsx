@@ -197,6 +197,48 @@ function traduzirAviso(texto: string, t: (s: string) => string): string {
       .replace("Detalhe técnico, para quem der suporte:", "Detalle técnico, para soporte:")
       .replace(/(\d+)\s+tentativas; motivo:/, "$1 intentos; motivo:");
   }
+  if (texto === "A pausa agendada de conexões não está sendo aplicada") {
+    return "La pausa programada de conexiones no se está aplicando";
+  }
+  if (texto.includes("agendador das janelas de manutenção não conseguiu aplicar uma batida")) {
+    return "El programador de ventanas de mantenimiento no pudo aplicar una ejecución: una ventana puede haber dejado de pausar o de reanudar en el horario programado. El próximo intento es automático; si este aviso continúa abierto, revise el registro del programador.";
+  }
+  if (texto.startsWith("Não foi possível verificar a conexão ")) {
+    return texto
+      .replace("Não foi possível verificar a conexão ", "No fue posible verificar la conexión ")
+      .replace('"sem nome"', '"sin nombre"');
+  }
+  if (texto.startsWith('WhatsApp "') && texto.includes("desconectado — precisa escanear o QR de novo")) {
+    return texto
+      .replace('"sem nome"', '"sin nombre"')
+      .replace("desconectado — precisa escanear o QR de novo", "desconectado — es necesario escanear el QR nuevamente");
+  }
+  if (texto.startsWith('WhatsApp "') && texto.includes("fora do ar")) {
+    return texto
+      .replace('"sem nome"', '"sin nombre"')
+      .replace("fora do ar", "fuera de servicio");
+  }
+  if (texto === "Enquanto isso não acontecer, nenhuma mensagem entra nem sai por esta conexão.") {
+    return "Mientras esto no suceda, ningún mensaje entrará ni saldrá por esta conexión.";
+  }
+  if (texto === "provedor_indisponivel") {
+    return "Proveedor no disponible";
+  }
+  if (texto === "A recuperação não foi iniciada") {
+    return "La recuperación no fue iniciada";
+  }
+  if (texto.includes("Configure um fluxo de recuperação")) {
+    return "Configure un flujo de recuperación y habilítelo en un asistente publicado. Esta inasistencia no se iniciará retroactivamente.";
+  }
+  if (texto.includes("Este contato já tem outro acompanhamento")) {
+    return "Este contacto ya tiene otro seguimiento. Revise el próximo paso; ninguna recuperación quedó en espera.";
+  }
+  if (texto.includes("Mais de um fluxo atende a esta falta")) {
+    return "Más de un flujo responde a esta inasistencia. Deje solo uno configurado o elija manualmente el próximo paso.";
+  }
+  if (texto.includes("O contexto mudou ou não há contato vinculado")) {
+    return "El contexto cambió o no hay contacto vinculado. Abra la cita y elija el próximo paso.";
+  }
 
   return texto;
 }

@@ -61,7 +61,7 @@ export function ConexaoCaidaBanner({ caidas }: { caidas: ConexaoCaida[] }) {
         <span>
           {uma ? (
             <>
-              WhatsApp <strong className="font-semibold">{uma.apelido}</strong>{" "}
+              WhatsApp <strong className="font-semibold">{t(uma.apelido)}</strong>{" "}
               {t("está desconectado")}
             </>
           ) : (
